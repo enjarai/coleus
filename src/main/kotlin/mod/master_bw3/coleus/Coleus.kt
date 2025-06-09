@@ -30,5 +30,5 @@ object Coleus : ModInitializer {
         logger.info(formatted.toString())
     }
 
-    val x = "HEY THERE" + "\n- how goes it"
+    val x = "HEY THERE \nhow goes it \n\n b \n\n\n\n c \n d"
 }

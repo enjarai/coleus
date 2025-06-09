@@ -4,28 +4,41 @@ import io.wispforest.lavendermd.compiler.MarkdownCompiler
 import j2html.TagCreator.*
 import j2html.rendering.IndentedHtml
 import j2html.tags.ContainerTag
+import j2html.tags.specialized.DivTag
 import j2html.tags.specialized.HtmlTag
 import net.minecraft.text.Style
 import net.minecraft.util.Identifier
 import java.util.*
 import java.util.function.UnaryOperator
 import kotlin.collections.ArrayDeque
+import kotlin.math.min
 
 class HtmlCompiler<T : Appendable>(private val out: T) : MarkdownCompiler<T> {
 
-    private var root: ContainerTag<*> = HtmlTag()
+    private var root: ContainerTag<*> = div()
     private var nodes: ArrayDeque<ContainerTag<*>> = ArrayDeque(listOf(root))
     private val nodesTop: ContainerTag<*>
         get() = nodes.last()
 
     private var listDepth = 0
-
+    private var emptyLineCount = 0
 
     override fun visitText(text: String) {
-        if (listDepth > 0) {
-            nodesTop.with(li(text))
-        } else {
-            nodesTop.withText(text)
+        text.split("\n").forEach { line ->
+            if (line.isBlank()) {
+                if (emptyLineCount < 2) {
+                    nodesTop.with(br())
+                }
+                emptyLineCount++
+            } else {
+                emptyLineCount = 0;
+
+                if (listDepth > 0) {
+                    nodesTop.with(li(line))
+                } else {
+                    nodesTop.withText(line)
+                }
+            }
         }
     }
 
