@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "mod.master_bw3.mixin.client",
+	"package": "mod.master_bw3.coleus.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"ExampleClientMixin"

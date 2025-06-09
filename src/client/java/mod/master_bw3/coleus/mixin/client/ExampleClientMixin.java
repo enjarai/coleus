@@ -1,4 +1,4 @@
-package mod.master_bw3.mixin.client;
+package mod.master_bw3.coleus.mixin.client;
 
 import net.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;

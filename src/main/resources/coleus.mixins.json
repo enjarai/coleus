@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "mod.master_bw3.mixin",
+	"package": "mod.master_bw3.coleus.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ExampleMixin"

@@ -1,4 +1,4 @@
-package mod.master_bw3
+package mod.master_bw3.coleus
 
 import net.fabricmc.api.ClientModInitializer
 
