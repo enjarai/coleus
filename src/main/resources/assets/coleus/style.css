@@ -1,0 +1,13 @@
+body {
+display: flex;
+}
+
+.sidebar {
+  width: 22em;
+  min-width: 22em;
+  font-size: small;
+}
+
+.sidebar li {
+  margin: 0.5em;
+}

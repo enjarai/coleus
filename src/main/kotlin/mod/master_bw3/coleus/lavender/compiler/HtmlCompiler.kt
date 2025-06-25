@@ -5,25 +5,26 @@ import j2html.TagCreator.*
 import j2html.rendering.IndentedHtml
 import j2html.tags.ContainerTag
 import j2html.tags.specialized.DivTag
-import j2html.tags.specialized.HtmlTag
 import net.minecraft.text.Style
 import net.minecraft.util.Identifier
 import java.util.*
 import java.util.function.UnaryOperator
 import kotlin.collections.ArrayDeque
-import kotlin.math.min
 
-class HtmlCompiler<T : Appendable>(private val out: T) : MarkdownCompiler<T> {
+class HtmlCompiler() : MarkdownCompiler<DivTag> {
 
-    private var root: ContainerTag<*> = div()
+    private var root: DivTag = div()
     private var nodes: ArrayDeque<ContainerTag<*>> = ArrayDeque(listOf(root))
     private val nodesTop: ContainerTag<*>
         get() = nodes.last()
 
+    private var listPrevDepth = 0
     private var listDepth = 0
     private var emptyLineCount = 0
 
     override fun visitText(text: String) {
+        if (listDepth == 0) listPrevDepth = 0
+
         text.split("\n").forEach { line ->
             if (line.isBlank()) {
                 if (emptyLineCount < 2) {
@@ -33,11 +34,7 @@ class HtmlCompiler<T : Appendable>(private val out: T) : MarkdownCompiler<T> {
             } else {
                 emptyLineCount = 0;
 
-                if (listDepth > 0) {
-                    nodesTop.with(li(line))
-                } else {
-                    nodesTop.withText(line)
-                }
+                nodesTop.withText(line)
             }
         }
     }
@@ -85,21 +82,31 @@ class HtmlCompiler<T : Appendable>(private val out: T) : MarkdownCompiler<T> {
     }
 
     override fun visitListItem(ordinal: OptionalInt) {
-        if (ordinal.isPresent) {
-            pushTag(ol().withStart(ordinal.asInt.toString()))
-        } else {
-            pushTag(ul())
-        }
         listDepth++
+
+        if (listDepth > listPrevDepth) {
+            if (ordinal.isPresent) {
+                pushTag(ol().withStart(ordinal.asInt.toString()))
+            } else {
+                pushTag(ul())
+            }
+        }
+        pushTag(li())
     }
 
     override fun visitListItemEnd() {
         nodes.removeLast()
+
+        listPrevDepth = listDepth
         listDepth--
     }
 
-    override fun compile(): T {
-        return root.render(IndentedHtml.into(out))
+    fun visitPageBreak() {
+
+    }
+
+    override fun compile(): DivTag {
+        return root
     }
 
     override fun name(): String {
