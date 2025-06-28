@@ -16,31 +16,21 @@ import j2html.tags.specialized.OlTag
 import mod.master_bw3.coleus.Coleus
 import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
 import mod.master_bw3.coleus.lavender.feature.HtmlPageBreakFeature
+import mod.master_bw3.coleus.lavender.feature.HtmlTemplateFeature
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
-import net.minecraft.resource.ResourceManager
 import net.minecraft.util.Identifier
-import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.outputStream
 import kotlin.io.path.relativeTo
-import kotlin.io.path.writer
 
 class HtmlBookGenerator(val book: Book) {
 
-    val processor = MarkdownProcessor(
-        ::HtmlCompiler,
-        BasicFormattingFeature(),
-        ColorFeature(),
-        LinkFeature(),
-        ListFeature(),
-        BlockQuoteFeature(),
-        HtmlPageBreakFeature()
-    )
-
-    val bookDir: Path by lazy {
+    val bookDir: Path =
         FabricLoader.getInstance().gameDir.resolve(Coleus.NAME).resolve(book.id().namespace).resolve(book.id().path)
-    }
+
+    val assetDir: Path = bookDir.resolve("assets")
+
 
     fun generate() {
 
@@ -58,7 +48,8 @@ class HtmlBookGenerator(val book: Book) {
             generatePage(id, title, content, "index")
         }
 
-        val cssFileWriter =  bookDir.resolve("style.css").outputStream()
+        assetDir.toFile().mkdirs()
+        val cssFileWriter = assetDir.resolve("style.css").outputStream()
         val cssResource = MinecraftClient.getInstance().resourceManager.getResource(Identifier.of(Coleus.NAME, "style.css")).get()
         cssResource.inputStream.transferTo(cssFileWriter)
         cssFileWriter.close()
@@ -69,13 +60,24 @@ class HtmlBookGenerator(val book: Book) {
         val file = path.toFile()
         file.parentFile.mkdirs()
 
+        val processor = MarkdownProcessor(
+            { HtmlCompiler(path, bookDir.resolve("assets")) },
+            BasicFormattingFeature(),
+            ColorFeature(),
+            LinkFeature(),
+            ListFeature(),
+            BlockQuoteFeature(),
+            HtmlPageBreakFeature(),
+            HtmlTemplateFeature(),
+        )
+
         val writer = file.writer()
 
         val html = html(
             head(
                 link()
                     .withRel("stylesheet")
-                    .withHref("${bookDir.resolve("style.css").relativeTo(path.parent)}")
+                    .withHref("${assetDir.resolve("style.css").relativeTo(path.parent)}")
             ),
             body(
                 sidebar(id),

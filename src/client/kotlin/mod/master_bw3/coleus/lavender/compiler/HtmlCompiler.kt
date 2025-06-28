@@ -2,16 +2,19 @@ package mod.master_bw3.coleus.lavender.compiler
 
 import io.wispforest.lavendermd.compiler.MarkdownCompiler
 import j2html.TagCreator.*
-import j2html.rendering.IndentedHtml
 import j2html.tags.ContainerTag
+import j2html.tags.DomContent
+import j2html.tags.Renderable
 import j2html.tags.specialized.DivTag
+import mod.master_bw3.coleus.htmlBook.HtmlTemplateRegistry
 import net.minecraft.text.Style
 import net.minecraft.util.Identifier
+import java.nio.file.Path
 import java.util.*
 import java.util.function.UnaryOperator
 import kotlin.collections.ArrayDeque
 
-class HtmlCompiler() : MarkdownCompiler<DivTag> {
+class HtmlCompiler(val pagePath: Path, val extraResourcesDir: Path) : MarkdownCompiler<DivTag> {
 
     private var root: DivTag = div()
     private var nodes: ArrayDeque<ContainerTag<*>> = ArrayDeque(listOf(root))
@@ -102,7 +105,10 @@ class HtmlCompiler() : MarkdownCompiler<DivTag> {
     }
 
     fun visitPageBreak() {
+    }
 
+    fun visitTemplate(template: (pagePath: Path, extraResourcesDir: Path) -> DomContent) {
+        nodesTop.with(template(pagePath, extraResourcesDir))
     }
 
     override fun compile(): DivTag {

@@ -19,6 +19,7 @@ repositories {
     // for more information about repositories.
     mavenCentral()
     maven { url 'https://maven.wispforest.io' }
+    maven { url 'https://api.modrinth.com/maven' }
 }
 
 fabricApi {
@@ -50,6 +51,8 @@ dependencies {
 
 //	modImplementation "io.wispforest.lavender-md:core:0.1.2+1.21"
     modImplementation "io.wispforest:lavender:0.1.15+1.21"
+    modImplementation "maven.modrinth:isometric-renders:0.4.7+1.21"
+    modLocalRuntime "io.wispforest:worldmesher:0.4.6+1.21"
 
     include(implementation "com.j2html:j2html:1.6.0")
 
