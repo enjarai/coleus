@@ -16,6 +16,7 @@ import j2html.tags.specialized.OlTag
 import mod.master_bw3.coleus.Coleus
 import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
 import mod.master_bw3.coleus.lavender.feature.HtmlPageBreakFeature
+import mod.master_bw3.coleus.lavender.feature.HtmlRecipeFeature
 import mod.master_bw3.coleus.lavender.feature.HtmlTemplateFeature
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
@@ -69,6 +70,7 @@ class HtmlBookGenerator(val book: Book) {
             BlockQuoteFeature(),
             HtmlPageBreakFeature(),
             HtmlTemplateFeature(),
+            HtmlRecipeFeature(mutableMapOf(), MinecraftClient.getInstance().world!!.registryManager)
         )
 
         val writer = file.writer()

@@ -11,3 +11,45 @@ display: flex;
 .sidebar li {
   margin: 0.5em;
 }
+
+.crafting-preview {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    width: fit-content;
+}
+
+.crafting-preview-ingredient-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+
+    width: fit-content;
+    height: fit-content;
+}
+
+.crafting-preview-ingredient-grid, .crafting-preview-ingredient-grid > * {
+    box-sizing: border-box;
+    border: solid grey 2px;
+}
+.crafting-preview-arrow {
+  --t: 45%; /* control the tail part */
+  --h: 40%; /* control the head part */
+
+  align-self: center;
+  margin: 10px 10px;
+
+  width: 100px;
+  height: 60px;
+  background: grey;
+  clip-path: polygon(0 calc(50% - var(--t)/2),calc(100% - var(--h)) calc(50% - var(--t)/2),calc(100% - var(--h)) 0,100% 50%,calc(100% - var(--h)) 100%,calc(100% - var(--h)) calc(50% + var(--t)/2),0 calc(50% + var(--t)/2));
+
+}
+
+.crafting-preview-result {
+    align-self: center;
+}
+
+
+.crafting-preview-result > img {
+    border: solid grey 3px;
+}
