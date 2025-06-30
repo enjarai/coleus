@@ -1,4 +1,4 @@
-package mod.master_bw3.coleus.htmlBook
+package mod.master_bw3.coleus.internal
 
 import io.wispforest.lavender.book.Book
 import io.wispforest.lavender.book.Category
@@ -9,11 +9,11 @@ import io.wispforest.lavendermd.feature.BlockQuoteFeature
 import io.wispforest.lavendermd.feature.ColorFeature
 import io.wispforest.lavendermd.feature.LinkFeature
 import io.wispforest.lavendermd.feature.ListFeature
-import j2html.TagCreator.*
+import j2html.TagCreator
 import j2html.rendering.IndentedHtml
 import j2html.tags.specialized.DivTag
 import j2html.tags.specialized.OlTag
-import mod.master_bw3.coleus.Coleus
+import mod.master_bw3.coleus.ColeusClient
 import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
 import mod.master_bw3.coleus.lavender.feature.HtmlPageBreakFeature
 import mod.master_bw3.coleus.lavender.feature.HtmlRecipeFeature
@@ -25,15 +25,15 @@ import java.nio.file.Path
 import kotlin.io.path.outputStream
 import kotlin.io.path.relativeTo
 
-class HtmlBookGenerator(val book: Book) {
+internal class HtmlBookGenerator(private val book: Book) {
 
-    val bookDir: Path =
-        FabricLoader.getInstance().gameDir.resolve(Coleus.NAME).resolve(book.id().namespace).resolve(book.id().path)
+    private val bookDir: Path =
+        FabricLoader.getInstance().gameDir.resolve(ColeusClient.NAME).resolve(book.id().namespace).resolve(book.id().path)
 
-    val assetDir: Path = bookDir.resolve("assets")
+    private val assetDir: Path = bookDir.resolve("assets")
 
 
-    fun generate() {
+    internal fun generate() {
 
         bookDir.toFile().deleteRecursively()
 
@@ -51,7 +51,7 @@ class HtmlBookGenerator(val book: Book) {
 
         assetDir.toFile().mkdirs()
         val cssFileWriter = assetDir.resolve("style.css").outputStream()
-        val cssResource = MinecraftClient.getInstance().resourceManager.getResource(Identifier.of(Coleus.NAME, "style.css")).get()
+        val cssResource = MinecraftClient.getInstance().resourceManager.getResource(Identifier.of(ColeusClient.NAME, "style.css")).get()
         cssResource.inputStream.transferTo(cssFileWriter)
         cssFileWriter.close()
     }
@@ -75,16 +75,16 @@ class HtmlBookGenerator(val book: Book) {
 
         val writer = file.writer()
 
-        val html = html(
-            head(
-                link()
+        val html = TagCreator.html(
+            TagCreator.head(
+                TagCreator.link()
                     .withRel("stylesheet")
                     .withHref("${assetDir.resolve("style.css").relativeTo(path.parent)}")
             ),
-            body(
+            TagCreator.body(
                 sidebar(id),
-                main(
-                    h1(title),
+                TagCreator.main(
+                    TagCreator.h1(title),
                     processor.process(content)
                 )
             )
@@ -97,17 +97,17 @@ class HtmlBookGenerator(val book: Book) {
 
 
     private fun sidebar(currentPage: Identifier): DivTag {
-        return div(buildCategoryList(book.categories(), currentPage)).withClass("sidebar")
+        return TagCreator.div(buildCategoryList(book.categories(), currentPage)).withClass("sidebar")
     }
 
     private fun buildCategoryList(categories: Collection<Category>, currentPage: Identifier): OlTag {
-        return unlabeledOl().with(book.categories().sortedBy(Category::ordinal).mapIndexed { index, category ->
+        return unlabeledOl().with(categories.sortedBy(Category::ordinal).mapIndexed { index, category ->
             val a = if (category.id == currentPage)
-                a(strong("${index + 1} ${category.title}"))
+                TagCreator.a(TagCreator.strong("${index + 1} ${category.title}"))
             else
-                a(strong("${index + 1}"), text(" ${category.title}"))
-            li(
-                div(
+                TagCreator.a(TagCreator.strong("${index + 1}"), TagCreator.text(" ${category.title}"))
+            TagCreator.li(
+                TagCreator.div(
                     a.withHref(
                         bookDir.resolve("${category.id.path}.html").relativeTo(bookDir.resolve(currentPage.path).parent)
                             .toString()
@@ -125,11 +125,11 @@ class HtmlBookGenerator(val book: Book) {
             entries.sortedBy(Entry::ordinal).mapIndexed { index, entry ->
                 val entryIndex = "${categoryIndex + 1}.${index + 1}"
                 val a = if (entry.id == currentPage)
-                    a(strong("$entryIndex ${entry.title}"))
+                    TagCreator.a(TagCreator.strong("$entryIndex ${entry.title}"))
                 else
-                    a(strong(entryIndex), text(" ${entry.title}"))
+                    TagCreator.a(TagCreator.strong(entryIndex), TagCreator.text(" ${entry.title}"))
 
-                li(
+                TagCreator.li(
                     a.withHref(
                         bookDir.resolve(
                             "${entry.id.path}.html"
@@ -139,6 +139,6 @@ class HtmlBookGenerator(val book: Book) {
             })
     }
 
-    private fun unlabeledOl(): OlTag = ol().withStyle("list-style-type: none")
+    private fun unlabeledOl(): OlTag = TagCreator.ol().withStyle("list-style-type: none")
 
 }

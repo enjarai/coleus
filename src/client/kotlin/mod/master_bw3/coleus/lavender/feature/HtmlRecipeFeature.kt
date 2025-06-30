@@ -20,14 +20,13 @@ import java.nio.file.Path
 import java.util.Map
 import java.util.function.BiFunction
 import j2html.TagCreator.*
-import mod.master_bw3.coleus.htmlBook.Components
-import net.minecraft.item.Items
+import mod.master_bw3.coleus.Components
 import net.minecraft.registry.DynamicRegistryManager
 
 
-class HtmlRecipeFeature(
-    val previewBuilders: MutableMap<RecipeType<*>, RecipePreviewBuilder> = Map.of<RecipeType<*>, RecipePreviewBuilder>(),
-    val registryManager: DynamicRegistryManager
+public class HtmlRecipeFeature(
+    private val previewBuilders: MutableMap<RecipeType<*>, RecipePreviewBuilder> = Map.of<RecipeType<*>, RecipePreviewBuilder>(),
+    private val registryManager: DynamicRegistryManager
 ) : MarkdownFeature {
 
     init {
@@ -60,6 +59,7 @@ class HtmlRecipeFeature(
             val recipe = MinecraftClient.getInstance().world!!.recipeManager.get(recipeId)
             if (recipe.isEmpty) return@LexFunction false
 
+            @Suppress("UNCHECKED_CAST")
             tokens.add(RecipeToken(recipeIdString, recipe.get() as RecipeEntry<Recipe<*>>))
             true
         }, '<')
@@ -101,16 +101,16 @@ class HtmlRecipeFeature(
         override fun visitEnd(compiler: MarkdownCompiler<*>?) {}
     }
 
-    interface RecipePreviewBuilder {
-        fun buildRecipePreview(
+    public interface RecipePreviewBuilder {
+        public fun buildRecipePreview(
             recipeEntry: RecipeEntry<*>,
             registryManager: DynamicRegistryManager
         ): (pagePath: Path, extraResourcesDir: Path) -> DomContent
 
     }
 
-    companion object {
-        val CRAFTING_PREVIEW_BUILDER: RecipePreviewBuilder =
+    public companion object {
+        public val CRAFTING_PREVIEW_BUILDER: RecipePreviewBuilder =
             object : RecipePreviewBuilder {
                 override fun buildRecipePreview(
                     recipeEntry: RecipeEntry<*>,
@@ -150,7 +150,7 @@ class HtmlRecipeFeature(
                 }
             }
 
-        val SMELTING_PREVIEW_BUILDER: RecipePreviewBuilder =
+        public val SMELTING_PREVIEW_BUILDER: RecipePreviewBuilder =
             object : RecipePreviewBuilder {
                 override fun buildRecipePreview(
                     recipeEntry: RecipeEntry<*>,
@@ -160,7 +160,7 @@ class HtmlRecipeFeature(
                 }
             }
 
-        val SMITHING_PREVIEW_BUILDER: RecipePreviewBuilder =
+        public val SMITHING_PREVIEW_BUILDER: RecipePreviewBuilder =
             object : RecipePreviewBuilder {
                 override fun buildRecipePreview(
                     recipeEntry: RecipeEntry<*>,
@@ -170,7 +170,7 @@ class HtmlRecipeFeature(
                 }
             }
 
-        val STONECUTTING_PREVIEW_BUILDER: RecipePreviewBuilder =
+        public val STONECUTTING_PREVIEW_BUILDER: RecipePreviewBuilder =
             object : RecipePreviewBuilder {
                 override fun buildRecipePreview(
                     recipeEntry: RecipeEntry<*>,

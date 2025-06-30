@@ -3,10 +3,10 @@ package mod.master_bw3.coleus
 import net.fabricmc.api.ModInitializer
 import org.slf4j.LoggerFactory
 
-object Coleus : ModInitializer {
+internal object Coleus : ModInitializer {
 
-    const val NAME = "coleus"
-    private val logger = LoggerFactory.getLogger(NAME)
+    internal const val NAME: String = "coleus"
+    internal val logger = LoggerFactory.getLogger(NAME)
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.

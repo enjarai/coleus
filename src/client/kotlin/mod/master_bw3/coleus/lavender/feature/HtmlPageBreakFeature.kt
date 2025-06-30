@@ -8,7 +8,7 @@ import io.wispforest.lavendermd.Parser
 import io.wispforest.lavendermd.compiler.MarkdownCompiler
 import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
 
-class HtmlPageBreakFeature : MarkdownFeature {
+public class HtmlPageBreakFeature : MarkdownFeature {
     override fun name(): String {
         return "html_page_breaks"
     }

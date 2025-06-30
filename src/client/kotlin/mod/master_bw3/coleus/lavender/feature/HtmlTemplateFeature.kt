@@ -1,6 +1,5 @@
 package mod.master_bw3.coleus.lavender.feature
 
-import com.mojang.logging.LogUtils
 import io.wispforest.lavendermd.Lexer
 import io.wispforest.lavendermd.Lexer.LexFunction
 import io.wispforest.lavendermd.MarkdownFeature
@@ -12,23 +11,14 @@ import io.wispforest.lavendermd.compiler.MarkdownCompiler
 import io.wispforest.lavendermd.util.ListNibbler
 import io.wispforest.lavendermd.util.StringNibbler
 import j2html.tags.DomContent
-import mod.master_bw3.coleus.htmlBook.HtmlTemplateRegistry
+import mod.master_bw3.coleus.HtmlTemplateRegistry
 import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
 import net.minecraft.util.Identifier
-import org.slf4j.Logger
 import java.nio.file.Path
 import java.util.function.BiFunction
 
-class HtmlTemplateFeature(
-    private val templateSource: TemplateProvider = TemplateProvider { modelId: Identifier, templateName: String, templateParams: Map<String, String> ->
-        val templateId = Identifier.of(modelId.namespace, templateName)
-        val templateExpander = HtmlTemplateRegistry.registry[templateId]
-        if (templateExpander == null) throw Exception("No template with id '$templateId is currently loaded")
-
-        return@TemplateProvider { pagePath: Path, extraResourcesDir: Path ->
-            templateExpander(templateParams, pagePath, extraResourcesDir)
-        }
-    }
+public class HtmlTemplateFeature(
+    private val templateSource: TemplateProvider = defaultTemplateProvider
 ) : MarkdownFeature {
     override fun name(): String {
         return "html_templates"
@@ -89,14 +79,14 @@ class HtmlTemplateFeature(
         private val params: String
     ) : Parser.Node() {
         override fun visitStart(compiler: MarkdownCompiler<*>) {
-            var paramReader = StringNibbler(params);
-            var builtParams = HashMap<String, String>();
+            var paramReader = StringNibbler(params)
+            var builtParams = HashMap<String, String>()
 
             while (paramReader.hasNext()) {
-                var paramName = paramReader.consumeUntil('=')!!;
-                var paramValue = paramReader.consumeEscapedString(',', true)!!;
+                var paramName = paramReader.consumeUntil('=')!!
+                var paramValue = paramReader.consumeEscapedString(',', true)!!
 
-                builtParams[paramName] = paramValue;
+                builtParams[paramName] = paramValue
             }
 
             (compiler as HtmlCompiler).visitTemplate(
@@ -105,22 +95,30 @@ class HtmlTemplateFeature(
                     templateName,
                     builtParams
                 )
-            );
+            )
         }
 
 
         override fun visitEnd(compiler: MarkdownCompiler<*>) {}
     }
 
-    fun interface TemplateProvider {
-        fun template(
+    public fun interface TemplateProvider {
+        public fun template(
             templateId: Identifier,
             templateName: String,
             templateParams: MutableMap<String, String>
         ): (pagePath: Path, extraResourcesDir: Path) -> DomContent
     }
 
-    companion object {
-        private val LOGGER: Logger = LogUtils.getLogger()
+    private companion object {
+        private val defaultTemplateProvider = TemplateProvider { modelId: Identifier, templateName: String, templateParams: Map<String, String> ->
+            val templateId = Identifier.of(modelId.namespace, templateName)
+            val templateExpander = HtmlTemplateRegistry.registry[templateId]
+            if (templateExpander == null) throw Exception("No template with id '$templateId is currently loaded")
+
+            return@TemplateProvider { pagePath: Path, extraResourcesDir: Path ->
+                templateExpander.expand(templateParams, pagePath, extraResourcesDir)
+            }
+        }
     }
 }
