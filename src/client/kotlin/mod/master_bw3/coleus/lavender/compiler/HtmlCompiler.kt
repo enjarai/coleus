@@ -25,15 +25,16 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
     private var newParagraph = true
 
     override fun visitText(text: String) {
-        if (text.matches(Regex("\n+")) && nodes.size > 1)  {
-            nodes.removeLast()
+        if (text.matches(Regex("\n+")))  {
+            popToRoot()
         } else if (text.isNotBlank()) {
             if (nodes.size == 1) pushTag(p())
-            nodesTop.withText(text+"(${nodes.size})")
+            nodesTop.withText(text)
         }
     }
 
     override fun visitStyle(styleFn: UnaryOperator<Style>) {
+        if (nodes.size == 1) pushTag(p())
         val style = styleFn.apply(Style.EMPTY)
         if (style.isBold) {
             pushTag(strong())
@@ -68,8 +69,8 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
     }
 
     override fun visitHorizontalRule() {
-        nodes.removeLast()
-        nodesTop.with(div().withClass("horizontalRule"))
+        popToRoot()
+        nodesTop.with(hr())
     }
 
     override fun visitImage(image: Identifier, description: String, fit: Boolean) {
@@ -77,7 +78,7 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
     }
 
     override fun visitListItem(ordinal: OptionalInt) {
-        if (prevListDepth == 0 && nodes.size > 1) nodes.removeLast()
+        if (prevListDepth == 0) popToRoot()
         listDepth++
 
         if (listDepth > prevListDepth) {
@@ -118,8 +119,9 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
         return tag
     }
 
-    private fun popParagraph() {
-        nodes.removeLast()
+    private fun popToRoot() {
+        nodes.clear()
+        nodes.add(root)
         newParagraph = true
     }
 
