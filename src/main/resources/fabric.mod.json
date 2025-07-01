@@ -42,11 +42,13 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.16.7",
-		"minecraft": "~1.21.1",
+		"fabricloader": ">=0.15.0",
+		"minecraft": ">=1.21",
 		"java": ">=21",
 		"fabric-api": "*",
-		"fabric-language-kotlin": "*"
+		"fabric-language-kotlin": "*",
+		"isometric-renders": ">=0.4.7+1.21",
+		"lavender": ">=0.1.15+1.21"
 	},
 	"suggests": {
 		"another-mod": "*"

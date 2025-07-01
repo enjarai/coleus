@@ -53,11 +53,11 @@ dependencies {
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
 //	modImplementation "io.wispforest.lavender-md:core:0.1.2+1.21"
-    modImplementation "io.wispforest:lavender:0.1.15+1.21"
-    modImplementation "maven.modrinth:isometric-renders:0.4.7+1.21"
-    modLocalRuntime "io.wispforest:worldmesher:0.4.6+1.21"
+    modImplementation "io.wispforest:lavender:${project.lavender_version}"
+    modImplementation "maven.modrinth:isometric-renders:${project.isometric_renders_version}"
+    modLocalRuntime "io.wispforest:worldmesher:${project.worldmesher_version}"
 
-    include(implementation "com.j2html:j2html:1.6.0")
+    include(implementation "com.j2html:j2html:${project.j2html_version}")
 
 //    testmodImplementation sourceSets.main.output
 }
