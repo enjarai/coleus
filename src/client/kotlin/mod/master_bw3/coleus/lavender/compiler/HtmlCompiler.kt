@@ -19,24 +19,17 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
     private val nodesTop: ContainerTag<*>
         get() = nodes.last()
 
-    private var listPrevDepth = 0
+    private var prevListDepth = 0
     private var listDepth = 0
-    private var emptyLineCount = 0
+
+    private var newParagraph = true
 
     override fun visitText(text: String) {
-        if (listDepth == 0) listPrevDepth = 0
-
-        text.split("\n").forEach { line ->
-            if (line.isBlank()) {
-                if (emptyLineCount < 2) {
-                    nodesTop.with(br())
-                }
-                emptyLineCount++
-            } else {
-                emptyLineCount = 0
-
-                nodesTop.withText(line)
-            }
+        if (text.matches(Regex("\n+")) && nodes.size > 1)  {
+            nodes.removeLast()
+        } else if (text.isNotBlank()) {
+            if (nodes.size == 1) pushTag(p())
+            nodesTop.withText(text+"(${nodes.size})")
         }
     }
 
@@ -75,6 +68,7 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
     }
 
     override fun visitHorizontalRule() {
+        nodes.removeLast()
         nodesTop.with(div().withClass("horizontalRule"))
     }
 
@@ -83,9 +77,10 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
     }
 
     override fun visitListItem(ordinal: OptionalInt) {
+        if (prevListDepth == 0 && nodes.size > 1) nodes.removeLast()
         listDepth++
 
-        if (listDepth > listPrevDepth) {
+        if (listDepth > prevListDepth) {
             if (ordinal.isPresent) {
                 pushTag(ol().withStart(ordinal.asInt.toString()))
             } else {
@@ -98,7 +93,7 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
     override fun visitListItemEnd() {
         nodes.removeLast()
 
-        listPrevDepth = listDepth
+        prevListDepth = listDepth
         listDepth--
     }
 
@@ -121,6 +116,11 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
         nodesTop.with(tag)
         nodes.add(tag)
         return tag
+    }
+
+    private fun popParagraph() {
+        nodes.removeLast()
+        newParagraph = true
     }
 
 }

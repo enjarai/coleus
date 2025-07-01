@@ -5,6 +5,7 @@ import mod.master_bw3.coleus.internal.HtmlBookGenerator
 import mod.master_bw3.coleus.internal.registerHtmlTemplates
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
+import net.minecraft.util.Identifier
 import org.slf4j.LoggerFactory
 
 internal object ColeusClient : ClientModInitializer {
@@ -17,7 +18,6 @@ internal object ColeusClient : ClientModInitializer {
 		registerHtmlTemplates()
 
 		ClientPlayConnectionEvents.JOIN.register { handler, sender, client ->
-
 			client.execute {
 				println("generating books")
 				BookLoader.loadedBooks().forEach {
