@@ -5,7 +5,7 @@
 
   outputs = inputs:
     let
-      javaVersion = 23; # Change this value to update the whole stack
+      javaVersion = 21; # Change this value to update the whole stack
 
       supportedSystems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
       forEachSupportedSystem = f: inputs.nixpkgs.lib.genAttrs supportedSystems (system: f {
@@ -28,27 +28,29 @@
         };
 
       devShells = forEachSupportedSystem ({ pkgs }: {
-        default = pkgs.mkShell {
-          packages = with pkgs; [
-            gcc
-            gradle
-            jdk
+        default =
+        let
+          libs = with pkgs; [
+            libpulseaudio
+            libGL
+            glfw
+            openal
+            stdenv.cc.cc.lib
             maven
             ncurses
             patchelf
             zlib
             libglvnd
+            gcc
+            gradle
           ];
-
-          shellHook =
-            let
-              prev = "\${JAVA_TOOL_OPTIONS:+ $JAVA_TOOL_OPTIONS}";
-            in
-            ''
-              export LD_LIBRARY_PATH="''${LD_LIBRARY_PATH}''${LD_LIBRARY_PATH:+:}${pkgs.libglvnd}/lib"
-              export JAVA_TOOL_OPTIONS="${prev}"
-            '';
-        };
+        in
+          pkgs.mkShell {
+            packages = with pkgs; [
+              jdk
+            ] ++ libs;
+            LD_LIBRARY_PATH=pkgs.lib.makeLibraryPath libs;
+          };
       });
     };
 }
