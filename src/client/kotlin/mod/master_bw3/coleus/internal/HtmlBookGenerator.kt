@@ -10,7 +10,7 @@ import io.wispforest.lavendermd.feature.ColorFeature
 import io.wispforest.lavendermd.feature.LinkFeature
 import io.wispforest.lavendermd.feature.ListFeature
 import j2html.TagCreator
-import j2html.rendering.IndentedHtml
+import j2html.rendering.FlatHtml
 import j2html.tags.specialized.DivTag
 import j2html.tags.specialized.OlTag
 import mod.master_bw3.coleus.ColeusClient
@@ -90,7 +90,7 @@ internal class HtmlBookGenerator(private val book: Book) {
             )
         )
 
-        html.render(IndentedHtml.into(writer))
+        html.render(FlatHtml.into(writer))
         writer.close()
     }
 

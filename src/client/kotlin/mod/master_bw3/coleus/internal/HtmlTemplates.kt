@@ -15,7 +15,7 @@ import java.util.stream.Stream
 
 internal val lavenderHtmlTemplates = mapOf<String, TemplateExpander>(
     "page-title" to TemplateExpander { params, _, _ ->
-        h1(params["title"]!!).withClass("page-title")
+        h2(params["title"]!!).withClass("page-title")
     },
 
     "item-spotlight" to TemplateExpander { params, pagePath, resourcesDir ->
