@@ -37,7 +37,9 @@ public class OwoUIComponentRenderable public constructor(private val component: 
         val context = DrawContext(client, client.bufferBuilders.entityVertexConsumers)
 
         context.matrices.push()
+//        context.matrices.translate(-size / 2f, -size / 2f, 0f)
         component.inflate(Size.of(size, size))
+        component.mount(null, 0, 0)
         component.draw(OwoUIDrawContext.of(context), 0, 0, tickCounter.getTickDelta(false), tickCounter.lastFrameDuration)
         context.matrices.pop()
         context.draw()

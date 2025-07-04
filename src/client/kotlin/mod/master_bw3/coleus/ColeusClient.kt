@@ -2,6 +2,7 @@ package mod.master_bw3.coleus
 
 import io.wispforest.lavender.book.BookLoader
 import io.wispforest.owo.ui.component.Components
+import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.core.Color
 import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.core.Sizing
@@ -58,7 +59,14 @@ internal object ColeusClient : ClientModInitializer {
 				override fun reload(manager: ResourceManager) {
 					if (MinecraftClient.getInstance().world == null) return
 					MinecraftClient.getInstance().execute {
-                        val component = Components.button(Text.literal("hey there!")) {  } as Component
+//                        val component = Containers.verticalFlow(Sizing.fill(), Sizing.fill())
+//						component.child(Components.button(Text.literal("hey there!")) {  } as Component)
+//						component.child(Components.button(Text.literal("Joe!")) {  } as Component)
+//						val component = Components.button(Text.literal("hey there!")) {  } as Component
+						val component = Components.box(Sizing.fill(), Sizing.fill())
+						component.fill(true)
+						component.color(Color.RED)
+
 						println("GENERATING IMAGE")
                         owo(
                             component,

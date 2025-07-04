@@ -20,6 +20,7 @@ import j2html.tags.ContainerTag
 import j2html.tags.DomContent
 import j2html.tags.Tag
 import j2html.tags.specialized.ImgTag
+import mod.master_bw3.coleus.internal.OwoHtmlComponent
 import mod.master_bw3.coleus.internal.OwoUIComponentRenderable
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.SimpleFramebuffer
@@ -45,7 +46,8 @@ public object Components {
 
     @JvmStatic
     public fun owo(component: Component, pagePath: Path, imageOutPath: Path, size: Int = 100): ImgTag {
-        val image = RenderableDispatcher.drawIntoImage(OwoUIComponentRenderable(component, size), 0f, size)
+
+        val image = OwoHtmlComponent(component).drawIntoImage(size)
         imageOutPath.parent.toFile().mkdirs()
         image.writeTo(imageOutPath)
         return img().withSrc(imageOutPath.relativeTo(pagePath.parent).toString())
