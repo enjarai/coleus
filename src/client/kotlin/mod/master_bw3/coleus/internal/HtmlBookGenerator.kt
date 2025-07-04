@@ -1,5 +1,6 @@
 package mod.master_bw3.coleus.internal
 
+import io.wispforest.lavender.Lavender
 import io.wispforest.lavender.book.Book
 import io.wispforest.lavender.book.Category
 import io.wispforest.lavender.book.Entry
@@ -10,6 +11,8 @@ import io.wispforest.lavendermd.feature.ColorFeature
 import io.wispforest.lavendermd.feature.LinkFeature
 import io.wispforest.lavendermd.feature.ListFeature
 import j2html.TagCreator
+import j2html.TagCreator.a
+import j2html.TagCreator.strong
 import j2html.rendering.FlatHtml
 import j2html.tags.specialized.DivTag
 import j2html.tags.specialized.OlTag
@@ -28,7 +31,8 @@ import kotlin.io.path.relativeTo
 internal class HtmlBookGenerator(private val book: Book) {
 
     private val bookDir: Path =
-        FabricLoader.getInstance().gameDir.resolve(ColeusClient.NAME).resolve(book.id().namespace).resolve(book.id().path)
+        FabricLoader.getInstance().gameDir.resolve(ColeusClient.NAME).resolve(book.id().namespace)
+            .resolve(book.id().path)
 
     private val assetDir: Path = bookDir.resolve("assets")
 
@@ -51,7 +55,9 @@ internal class HtmlBookGenerator(private val book: Book) {
 
         assetDir.toFile().mkdirs()
         val cssFileWriter = assetDir.resolve("style.css").outputStream()
-        val cssResource = MinecraftClient.getInstance().resourceManager.getResource(Identifier.of(ColeusClient.NAME, "style.css")).get()
+        val cssResource =
+            MinecraftClient.getInstance().resourceManager.getResource(Identifier.of(ColeusClient.NAME, "style.css"))
+                .get()
         cssResource.inputStream.transferTo(cssFileWriter)
         cssFileWriter.close()
     }
@@ -61,6 +67,7 @@ internal class HtmlBookGenerator(private val book: Book) {
         val file = path.toFile()
         file.parentFile.mkdirs()
 
+        val bookTexture = book.texture() ?: Lavender.id("textures/gui/brown_book.png")
         val processor = MarkdownProcessor(
             { HtmlCompiler(path, bookDir.resolve("assets")) },
             BasicFormattingFeature(),
@@ -69,7 +76,7 @@ internal class HtmlBookGenerator(private val book: Book) {
             ListFeature(),
             BlockQuoteFeature(),
             HtmlPageBreakFeature(),
-            HtmlTemplateFeature(),
+            HtmlTemplateFeature(extraParams = mapOf("book-texture" to bookTexture.toString())),
             HtmlRecipeFeature(mutableMapOf(), MinecraftClient.getInstance().world!!.registryManager)
         )
 
@@ -95,17 +102,19 @@ internal class HtmlBookGenerator(private val book: Book) {
     }
 
 
-
     private fun sidebar(currentPage: Identifier): DivTag {
-        return TagCreator.div(buildCategoryList(book.categories(), currentPage)).withClass("sidebar")
+        val sidebar = TagCreator.div(buildEntryList(book.entries().filter { it.categories.isEmpty() }, currentPage))
+            .withClass("sidebar")
+        return sidebar.with(buildCategoryList(book.categories(), currentPage))
     }
 
     private fun buildCategoryList(categories: Collection<Category>, currentPage: Identifier): OlTag {
         return unlabeledOl().with(categories.sortedBy(Category::ordinal).mapIndexed { index, category ->
             val a = if (category.id == currentPage)
-                TagCreator.a(TagCreator.strong("${index + 1} ${category.title}"))
+                a(strong("${index + 1} ${category.title}"))
             else
-                TagCreator.a(TagCreator.strong("${index + 1}"), TagCreator.text(" ${category.title}"))
+                a(strong("${index + 1}"), TagCreator.text(" ${category.title}"))
+
             TagCreator.li(
                 TagCreator.div(
                     a.withHref(
@@ -113,21 +122,25 @@ internal class HtmlBookGenerator(private val book: Book) {
                             .toString()
                     ),
                     book.entriesByCategory(category)?.let {
-                        buildEntryList(it, index, currentPage)
+                        buildEntryList(it, currentPage, index)
                     }
                 )
             )
         })
     }
 
-    private fun buildEntryList(entries: Collection<Entry>, categoryIndex: Int, currentPage: Identifier): OlTag {
+    private fun buildEntryList(entries: Collection<Entry>, currentPage: Identifier, categoryIndex: Int? = null): OlTag {
         return unlabeledOl().with(
             entries.sortedBy(Entry::ordinal).mapIndexed { index, entry ->
-                val entryIndex = "${categoryIndex + 1}.${index + 1}"
-                val a = if (entry.id == currentPage)
-                    TagCreator.a(TagCreator.strong("$entryIndex ${entry.title}"))
-                else
-                    TagCreator.a(TagCreator.strong(entryIndex), TagCreator.text(" ${entry.title}"))
+                val a = a()
+                if (categoryIndex != null) {
+                    a.with(strong("${categoryIndex + 1}.${index + 1} "))
+                }
+                if (entry.id == currentPage) {
+                    a.with(strong(entry.title))
+                } else {
+                    a.withText(entry.title)
+                }
 
                 TagCreator.li(
                     a.withHref(

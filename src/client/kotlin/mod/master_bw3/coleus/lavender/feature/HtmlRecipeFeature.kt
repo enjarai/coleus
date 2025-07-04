@@ -105,7 +105,7 @@ public class HtmlRecipeFeature(
         public fun buildRecipePreview(
             recipeEntry: RecipeEntry<*>,
             registryManager: DynamicRegistryManager
-        ): (pagePath: Path, extraResourcesDir: Path) -> DomContent
+        ): TemplateFn
 
     }
 
@@ -115,7 +115,7 @@ public class HtmlRecipeFeature(
                 override fun buildRecipePreview(
                     recipeEntry: RecipeEntry<*>,
                     registryManager: DynamicRegistryManager
-                ): (pagePath: Path, extraResourcesDir: Path) -> DomContent {
+                ): TemplateFn {
                     val recipe = recipeEntry.value()
                     val ingredients = recipe.ingredients
                     val result = recipe.getResult(registryManager)
@@ -155,7 +155,7 @@ public class HtmlRecipeFeature(
                 override fun buildRecipePreview(
                     recipeEntry: RecipeEntry<*>,
                     registryManager: DynamicRegistryManager
-                ): (pagePath: Path, extraResourcesDir: Path) -> DomContent {
+                ): TemplateFn {
                     return { pagePath: Path, extraResourcesDir: Path -> text("ohno") }
                 }
             }
@@ -165,7 +165,7 @@ public class HtmlRecipeFeature(
                 override fun buildRecipePreview(
                     recipeEntry: RecipeEntry<*>,
                     registryManager: DynamicRegistryManager
-                ): (pagePath: Path, extraResourcesDir: Path) -> DomContent {
+                ): TemplateFn {
                     return { pagePath: Path, extraResourcesDir: Path -> text("ohno") }
                 }
             }
@@ -175,7 +175,7 @@ public class HtmlRecipeFeature(
                 override fun buildRecipePreview(
                     recipeEntry: RecipeEntry<*>,
                     registryManager: DynamicRegistryManager
-                ): (pagePath: Path, extraResourcesDir: Path) -> DomContent {
+                ): TemplateFn {
                     return { pagePath: Path, extraResourcesDir: Path -> text("ohno") }
                 }
             }
