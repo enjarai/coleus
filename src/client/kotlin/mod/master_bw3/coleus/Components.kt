@@ -2,6 +2,7 @@ package mod.master_bw3.coleus
 
 import com.glisco.isometricrenders.render.ItemRenderable
 import com.glisco.isometricrenders.render.RenderableDispatcher
+import com.mojang.blaze3d.systems.RenderSystem
 import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.container.Containers.stack
@@ -27,6 +28,7 @@ import net.minecraft.client.texture.NativeImage
 import net.minecraft.item.ItemStack
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
+import net.minecraft.util.math.RotationAxis
 import org.lwjgl.opengl.GL30C
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
@@ -43,31 +45,7 @@ public object Components {
 
     @JvmStatic
     public fun owo(component: Component, pagePath: Path, imageOutPath: Path, size: Int = 100): ImgTag {
-        val size = 500;
-        val component = Components.box(Sizing.fill(), Sizing.fill())
-        component.color(Color.RED)
-        component.fill(true)
-
-        val client = MinecraftClient.getInstance()
-        val framebuffer = SimpleFramebuffer(size, size, true, false)
-        var tickCounter = client.renderTickCounter;
-        val context = DrawContext(client, client.bufferBuilders.entityVertexConsumers)
-
-        framebuffer.beginWrite(true)
-        val adapter = OwoUIAdapter.createWithoutScreen(0, 0,  framebuffer.viewportHeight, framebuffer.viewportWidth, Containers::stack)
-        adapter.rootComponent.child(component)
-        adapter.inflateAndMount()
-        adapter.render(context, 0, 0, tickCounter.lastFrameDuration)
-        context.draw()
-        framebuffer.endWrite()
-
-        val image = NativeImage(framebuffer.textureWidth, framebuffer.textureHeight, false);
-
-        framebuffer.beginRead();
-        image.loadFromTextureImage(0, false);
-        framebuffer.delete();
-
-
+        val image = RenderableDispatcher.drawIntoImage(OwoUIComponentRenderable(component, size), 0f, size)
         imageOutPath.parent.toFile().mkdirs()
         image.writeTo(imageOutPath)
         return img().withSrc(imageOutPath.relativeTo(pagePath.parent).toString())
