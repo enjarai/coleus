@@ -4,12 +4,11 @@ import io.wispforest.lavender.Lavender
 import io.wispforest.lavender.book.Book
 import io.wispforest.lavender.book.Category
 import io.wispforest.lavender.book.Entry
+import io.wispforest.lavender.md.compiler.BookCompiler.ComponentSource
 import io.wispforest.lavendermd.MarkdownProcessor
-import io.wispforest.lavendermd.feature.BasicFormattingFeature
-import io.wispforest.lavendermd.feature.BlockQuoteFeature
-import io.wispforest.lavendermd.feature.ColorFeature
-import io.wispforest.lavendermd.feature.LinkFeature
-import io.wispforest.lavendermd.feature.ListFeature
+import io.wispforest.lavendermd.feature.*
+import io.wispforest.owo.ui.core.Component
+import io.wispforest.owo.ui.parsing.UIModel
 import j2html.TagCreator
 import j2html.TagCreator.a
 import j2html.TagCreator.strong
@@ -19,8 +18,9 @@ import j2html.tags.specialized.OlTag
 import mod.master_bw3.coleus.ColeusClient
 import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
 import mod.master_bw3.coleus.lavender.feature.HtmlPageBreakFeature
-import mod.master_bw3.coleus.lavender.feature.HtmlRecipeFeature
+import mod.master_bw3.coleus.lavender.feature.HtmlRecipeFeature2
 import mod.master_bw3.coleus.lavender.feature.HtmlTemplateFeature
+import mod.master_bw3.coleus.mixin.client.LavenderBookScreenAccessor
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.Identifier
@@ -77,7 +77,7 @@ internal class HtmlBookGenerator(private val book: Book) {
             BlockQuoteFeature(),
             HtmlPageBreakFeature(),
             HtmlTemplateFeature(extraParams = mapOf("book-texture" to bookTexture.toString())),
-            HtmlRecipeFeature(mutableMapOf(), MinecraftClient.getInstance().world!!.registryManager)
+            HtmlRecipeFeature2(template, LavenderBookScreenAccessor.getRecipeHandler()[book.id()])
         )
 
         val writer = file.writer()
@@ -154,4 +154,19 @@ internal class HtmlBookGenerator(private val book: Book) {
 
     private fun unlabeledOl(): OlTag = TagCreator.ol().withStyle("list-style-type: none")
 
+    private val template = object : ComponentSource {
+        override fun <C : Component> template(
+            model: UIModel,
+            expectedComponentClass: Class<C>,
+            name: String,
+            parameters: MutableMap<String, String>
+        ): C {
+            val params = HashMap<String, String>()
+            params["book-texture"] = book.texture().toString()
+            params.putAll(parameters)
+
+            return model.expandTemplate(expectedComponentClass, name, params)
+        }
+
+    }
 }

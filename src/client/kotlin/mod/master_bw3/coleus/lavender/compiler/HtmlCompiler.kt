@@ -1,10 +1,12 @@
 package mod.master_bw3.coleus.lavender.compiler
 
 import io.wispforest.lavendermd.compiler.MarkdownCompiler
+import io.wispforest.owo.ui.core.Component
 import j2html.TagCreator.*
 import j2html.tags.ContainerTag
 import j2html.tags.DomContent
 import j2html.tags.specialized.DivTag
+import mod.master_bw3.coleus.Components.owo
 import net.minecraft.text.Style
 import net.minecraft.util.Identifier
 import java.nio.file.Path
@@ -105,6 +107,12 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
         nodesTop.with(template(pagePath, extraResourcesDir))
     }
 
+    public fun visitComponent(component: Component, scale: Int = 1) {
+        val outDir = extraResourcesDir.resolve("component").resolve("${UUID.randomUUID()}.png")
+        outDir.parent.toFile().mkdirs()
+        nodesTop.with(owo(component, pagePath, outDir, 500, scale))
+    }
+
     override fun compile(): DivTag {
         return root
     }
@@ -124,5 +132,7 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
         nodes.add(root)
         newParagraph = true
     }
+
+
 
 }

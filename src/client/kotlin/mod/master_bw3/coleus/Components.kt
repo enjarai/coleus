@@ -19,7 +19,9 @@ import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.DiffuseLighting
 import net.minecraft.client.texture.NativeImage
 import net.minecraft.item.ItemStack
+import net.minecraft.registry.Registries
 import net.minecraft.text.Text
+import net.minecraft.util.Identifier
 import org.joml.Matrix4f
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
@@ -41,11 +43,6 @@ public object Components {
         val tickCounter = client.renderTickCounter;
         val context = DrawContext(client, client.bufferBuilders.entityVertexConsumers)
 
-        val box = Components.box(Sizing.fill(), Sizing.fill())
-        box.color(Color.BLUE)
-        box.positioning(Positioning.absolute(0, 0))
-        (component as FlowLayout).child(box)
-
         RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC)
         val matrix4f = Matrix4f()
             .setOrtho(
@@ -53,7 +50,7 @@ public object Components {
                 imageSize.toFloat(),
                 imageSize.toFloat(),
                 0.0f,
-                1000.0f,
+                0f,
                 21000.0f
             )
         RenderSystem.backupProjectionMatrix()
@@ -65,8 +62,10 @@ public object Components {
         DiffuseLighting.enableGuiDepthLighting()
 
         context.matrices.push()
-        context.matrices.scale(scale.toFloat(), scale.toFloat(), 0f)
+        context.matrices.scale(scale.toFloat(), scale.toFloat(), 100.0f)
         component.inflate(Size.of(framebuffer.textureWidth / scale, framebuffer.textureHeight / scale))
+        context.matrices.translate(-component.x().toDouble(), -component.y().toDouble(), 0.0)
+
         component.mount(null, 0, 0)
 
         framebuffer.beginWrite(true)
@@ -76,9 +75,12 @@ public object Components {
 
         context.matrices.pop()
         modelViewStack.popMatrix()
+        RenderSystem.disableDepthTest()
         RenderSystem.applyModelViewMatrix()
         DiffuseLighting.disableGuiDepthLighting()
         RenderSystem.restoreProjectionMatrix()
+        RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC)
+
 
         val image = NativeImage(framebuffer.textureWidth, framebuffer.textureHeight, false);
 
