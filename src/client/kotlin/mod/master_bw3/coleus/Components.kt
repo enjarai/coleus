@@ -12,6 +12,7 @@ import j2html.tags.specialized.ImgTag
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.SimpleFramebuffer
 import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.tooltip.TooltipComponent
 import net.minecraft.client.render.DiffuseLighting
 import net.minecraft.client.texture.NativeImage
 import net.minecraft.text.Text
@@ -55,6 +56,61 @@ public object Components {
 
         framebuffer.beginWrite(true)
         component.draw(OwoUIDrawContext.of(context), 0, 0, tickCounter.getTickDelta(false), tickCounter.lastFrameDuration)
+        context.draw()
+        framebuffer.endWrite()
+
+        context.matrices.pop()
+        modelViewStack.popMatrix()
+        RenderSystem.disableDepthTest()
+        RenderSystem.applyModelViewMatrix()
+        DiffuseLighting.disableGuiDepthLighting()
+        RenderSystem.restoreProjectionMatrix()
+        RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC)
+
+
+        val image = NativeImage(framebuffer.textureWidth, framebuffer.textureHeight, false);
+
+        framebuffer.beginRead();
+        image.loadFromTextureImage(0, false);
+        image.mirrorVertically()
+        framebuffer.delete();
+
+        imageOutPath.parent.toFile().mkdirs()
+        image.writeTo(imageOutPath)
+        image.close()
+        return img().withSrc(imageOutPath.relativeTo(pagePath.parent).toString())
+    }
+
+    @JvmStatic
+    public fun tooltip(tooltip: List<TooltipComponent>, pagePath: Path, imageOutPath: Path, scale: Int = 1): ImgTag {
+        val client = MinecraftClient.getInstance()
+        val framebuffer = SimpleFramebuffer(150 * scale, 200 * scale, true, false)
+        val context = OwoUIDrawContext.of(DrawContext(client, client.bufferBuilders.entityVertexConsumers))
+
+        RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC)
+        val matrix4f = Matrix4f()
+            .setOrtho(
+                0.0f,
+                framebuffer.textureWidth.toFloat(),
+                framebuffer.textureHeight.toFloat(),
+                0.0f,
+                0f,
+                21000.0f
+            )
+        RenderSystem.backupProjectionMatrix()
+        RenderSystem.setProjectionMatrix(matrix4f, VertexSorter.BY_Z)
+        val modelViewStack = RenderSystem.getModelViewStack()
+        modelViewStack.pushMatrix()
+        modelViewStack.translation(0.0f, 0.0f, -11000.0f)
+        RenderSystem.applyModelViewMatrix()
+        DiffuseLighting.enableGuiDepthLighting()
+
+        context.matrices.push()
+        context.matrices.translate(-8.0 * scale, 16.0 * scale, 0.0)
+        context.matrices.scale(scale.toFloat(), scale.toFloat(), 0f)
+
+        framebuffer.beginWrite(true)
+        context.drawTooltip(client.textRenderer, 0, 0, tooltip)
         context.draw()
         framebuffer.endWrite()
 

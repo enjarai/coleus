@@ -49,7 +49,22 @@ display: flex;
     align-self: center;
 }
 
-
 .crafting-preview-result > img {
     border: solid grey 3px;
+}
+
+.embedded-component-container {
+    position: relative;
+}
+
+.embedded-component-tooltip {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 10;
+}
+
+.embedded-component:hover + .embedded-component-tooltip {
+    display: block;
 }

@@ -17,9 +17,7 @@ import j2html.tags.specialized.DivTag
 import j2html.tags.specialized.OlTag
 import mod.master_bw3.coleus.ColeusClient
 import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
-import mod.master_bw3.coleus.lavender.feature.HtmlPageBreakFeature
-import mod.master_bw3.coleus.lavender.feature.HtmlRecipeFeature2
-import mod.master_bw3.coleus.lavender.feature.HtmlTemplateFeature
+import mod.master_bw3.coleus.lavender.feature.*
 import mod.master_bw3.coleus.mixin.client.LavenderBookScreenAccessor
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
@@ -63,6 +61,9 @@ internal class HtmlBookGenerator(private val book: Book) {
     }
 
     private fun generatePage(id: Identifier, title: String, content: String, filename: String? = null) {
+        val world = MinecraftClient.getInstance().world
+            ?: throw AssertionError("world must be present to generate book")
+
         val path = bookDir.resolve("${filename ?: id.path}.html")
         val file = path.toFile()
         file.parentFile.mkdirs()
@@ -77,7 +78,10 @@ internal class HtmlBookGenerator(private val book: Book) {
             BlockQuoteFeature(),
             HtmlPageBreakFeature(),
             HtmlTemplateFeature(extraParams = mapOf("book-texture" to bookTexture.toString())),
-            HtmlRecipeFeature2(template, LavenderBookScreenAccessor.getRecipeHandler()[book.id()])
+            HtmlRecipeFeature(template, LavenderBookScreenAccessor.getRecipeHandler()[book.id()]),
+            HtmlOwoUIModelFeature(),
+            HtmlItemStackFeature(world.registryManager),
+            HtmlBlockStateFeature()
         )
 
         val writer = file.writer()

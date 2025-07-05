@@ -23,7 +23,6 @@ content here
 
 ;;;;;
 
-<|item-spotlight@lavender:book_components|item=affinity:strengthened_artifact_blade|>
-<|item-spotlight@lavender:book_components|item=affinity:strengthened_artifact_blade{Enchantments: [{id: "minecraft:unbreaking"\, lvl: 3s}]}|>
+<|item-spotlight@lavender:book_components|item=minecraft:diamond_sword|>
 
 This is where we explain why Artifact Blades are very cool, like ur mom :)

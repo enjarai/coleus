@@ -5,6 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException
 import io.wispforest.owo.ui.component.Components
 import j2html.TagCreator.*
 import mod.master_bw3.coleus.Components.owo
+import mod.master_bw3.coleus.Components.tooltip
 import mod.master_bw3.coleus.HtmlTemplateRegistry
 import mod.master_bw3.coleus.TemplateExpander
 import net.minecraft.command.argument.ItemStringReader
@@ -19,24 +20,33 @@ internal val lavenderHtmlTemplates = mapOf<String, TemplateExpander>(
         h2(params["title"]!!).withClass("page-title")
     },
 
-    "item-spotlight" to TemplateExpander { params, pagePath, resourcesDir ->
-        try {
-            val item = ItemStringReader(RegistryWrapper.WrapperLookup.of(Stream.of(Registries.ITEM.getReadOnlyWrapper())))
-                .consume(StringReader(params["item"]!!)).item
-            val id = item.key.get().value
+//    "item-spotlight" to TemplateExpander { params, pagePath, resourcesDir ->
+//        try {
+//            val item =
+//                ItemStringReader(RegistryWrapper.WrapperLookup.of(Stream.of(Registries.ITEM.readOnlyWrapper)))
+//                    .consume(StringReader(params["item"]!!)).item
+//            val id = item.key.get().value
+//            val component = Components.item(ItemStack(item));
+//            div(
+//                owo(
+//                    component,
+//                    pagePath,
+//                    resourcesDir.resolve("item/${id.namespace}/${id.path}.png"),
+//                    100,
+//                    5
+//                ).withClass("item-spotlight"),
+//                tooltip(
+//                    component.tooltip()!!, pagePath,
+//                    resourcesDir.resolve("item/${id.namespace}/${id.path}_tooltip.png"),
+//                    2
+//                )
+//            )
+//        } catch (_: CommandSyntaxException) {
+//            p(params["item"])
+//        }
+//    },
 
-            div(
-                owo(
-                    Components.item(ItemStack(item)),
-                    pagePath,
-                    resourcesDir.resolve("item/${id.namespace}/${id.path}.png"))
-            ).withClass("item-spotlight")
-        } catch (_: CommandSyntaxException) {
-            p(params["item"])
-        }
-    },
-
-    "horizontal-rule" to TemplateExpander {params, pagePath, resourcesDir -> hr() }
+    "horizontal-rule" to TemplateExpander { params, pagePath, resourcesDir -> hr() }
 )
 
 

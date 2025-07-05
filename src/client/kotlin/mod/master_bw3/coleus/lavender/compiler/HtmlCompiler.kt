@@ -7,6 +7,7 @@ import j2html.tags.ContainerTag
 import j2html.tags.DomContent
 import j2html.tags.specialized.DivTag
 import mod.master_bw3.coleus.Components.owo
+import mod.master_bw3.coleus.Components.tooltip
 import net.minecraft.text.Style
 import net.minecraft.util.Identifier
 import java.nio.file.Path
@@ -27,7 +28,7 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
     private var newParagraph = true
 
     override fun visitText(text: String) {
-        if (text.matches(Regex("\n+")))  {
+        if (text.matches(Regex("\n+"))) {
             popToRoot()
         } else if (text.isNotBlank()) {
             if (nodes.size == 1) pushTag(p())
@@ -107,10 +108,18 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
         nodesTop.with(template(pagePath, extraResourcesDir))
     }
 
-    public fun visitComponent(component: Component, scale: Int = 1) {
-        val outDir = extraResourcesDir.resolve("component").resolve("${UUID.randomUUID()}.png")
+    public fun visitComponent(component: Component, className: String, scale: Int = 1) {
+        val outDir = extraResourcesDir.resolve("component")
         outDir.parent.toFile().mkdirs()
-        nodesTop.with(owo(component, pagePath, outDir, 500, scale))
+        val uuid = UUID.randomUUID()
+
+        pushTag(div().withClass("embedded-component-container $className"))
+        nodesTop.with(owo(component, pagePath, outDir.resolve("${uuid}.png"), 500, scale).withClass("embedded-component"))
+        component.tooltip()?.let { tooltip ->
+            nodesTop.with(tooltip(tooltip, pagePath, outDir.resolve("${uuid}-tooltip.png"), 2)
+                .withClass("embedded-component-tooltip"))
+        }
+        nodes.removeLast()
     }
 
     override fun compile(): DivTag {
@@ -132,7 +141,6 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
         nodes.add(root)
         newParagraph = true
     }
-
 
 
 }
