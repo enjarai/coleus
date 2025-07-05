@@ -61,12 +61,8 @@ dependencies {
 
 //	modImplementation "io.wispforest.lavender-md:core:0.1.2+1.21"
     modImplementation "io.wispforest:lavender:${project.lavender_version}"
-    modImplementation "maven.modrinth:isometric-renders:${project.isometric_renders_version}"
-    modLocalRuntime "io.wispforest:worldmesher:${project.worldmesher_version}"
 
     include(implementation "com.j2html:j2html:${project.j2html_version}")
-
-    modImplementation("dev.enjarai:trickster:${property('deps.trickster')}")
 
 //    testmodImplementation sourceSets.main.output
 }
