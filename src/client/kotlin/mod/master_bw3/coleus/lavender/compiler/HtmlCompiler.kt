@@ -54,8 +54,13 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
         if (style.isStrikethrough) {
             pushTag(span().withClass("underlined"))
         }
-        if (style.color != null) {
-            pushTag(span().withStyle("color: ${style.color!!.hexCode}"))
+        val color = style.color;
+        if (color != null) {
+            if (color.name != color.hexCode) {
+                pushTag(span().withClass(color.name))
+            } else {
+                pushTag(span().withStyle("color: " + color.hexCode))
+            }
         }
     }
 
@@ -114,10 +119,20 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
         val uuid = UUID.randomUUID()
 
         pushTag(div().withClass("embedded-component-container $className"))
-        nodesTop.with(owo(component, pagePath, outDir.resolve("${uuid}.png"), 500, scale).withClass("embedded-component"))
+        nodesTop.with(
+            owo(
+                component,
+                pagePath,
+                outDir.resolve("${uuid}.png"),
+                500,
+                scale
+            ).withClass("embedded-component")
+        )
         component.tooltip()?.let { tooltip ->
-            nodesTop.with(tooltip(tooltip, pagePath, outDir.resolve("${uuid}-tooltip.png"), 2)
-                .withClass("embedded-component-tooltip"))
+            nodesTop.with(
+                tooltip(tooltip, pagePath, outDir.resolve("${uuid}-tooltip.png"), 2)
+                    .withClass("embedded-component-tooltip")
+            )
         }
         nodes.removeLast()
     }

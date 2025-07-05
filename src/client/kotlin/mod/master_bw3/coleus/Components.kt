@@ -23,7 +23,13 @@ import kotlin.io.path.relativeTo
 public object Components {
 
     @JvmStatic
-    public fun owo(component: Component, pagePath: Path, imageOutPath: Path, imageSize: Int = 100, scale: Int = 1): ImgTag {
+    public fun owo(
+        component: Component,
+        pagePath: Path,
+        imageOutPath: Path,
+        imageSize: Int = 100,
+        scale: Int = 1
+    ): ImgTag {
         component.inflate(Size.of(imageSize / scale, imageSize / scale))
 
         val client = MinecraftClient.getInstance()
@@ -55,7 +61,13 @@ public object Components {
         component.mount(null, 0, 0)
 
         framebuffer.beginWrite(true)
-        component.draw(OwoUIDrawContext.of(context), 0, 0, tickCounter.getTickDelta(false), tickCounter.lastFrameDuration)
+        component.draw(
+            OwoUIDrawContext.of(context),
+            0,
+            0,
+            tickCounter.getTickDelta(false),
+            tickCounter.lastFrameDuration
+        )
         context.draw()
         framebuffer.endWrite()
 
@@ -162,12 +174,15 @@ public object Components {
         if (style.isObfuscated) {
             current.withClass("obfuscated")
         }
-        val color = style.getColor();
+        val color = style.color;
         if (color != null) {
-            current
-                .withStyle("color: " + color.hexCode)
-                .withClass(color.name)
+            if (color.name != color.hexCode) {
+                current.withClass(color.name)
+            } else {
+                current.withStyle("color: " + color.hexCode)
+            }
         }
+
 
         current.withText(text.copyContentOnly().string)
 

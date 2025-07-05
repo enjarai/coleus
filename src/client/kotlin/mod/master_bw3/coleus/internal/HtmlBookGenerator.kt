@@ -9,12 +9,11 @@ import io.wispforest.lavendermd.MarkdownProcessor
 import io.wispforest.lavendermd.feature.*
 import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.parsing.UIModel
-import j2html.TagCreator
-import j2html.TagCreator.a
-import j2html.TagCreator.strong
+import j2html.TagCreator.*
 import j2html.rendering.FlatHtml
 import j2html.tags.specialized.DivTag
 import j2html.tags.specialized.OlTag
+import mod.master_bw3.coleus.Base16Theme
 import mod.master_bw3.coleus.ColeusClient
 import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
 import mod.master_bw3.coleus.lavender.feature.*
@@ -25,6 +24,7 @@ import net.minecraft.util.Identifier
 import java.nio.file.Path
 import kotlin.io.path.outputStream
 import kotlin.io.path.relativeTo
+import kotlin.io.path.writeText
 
 internal class HtmlBookGenerator(private val book: Book) {
 
@@ -52,12 +52,31 @@ internal class HtmlBookGenerator(private val book: Book) {
         }
 
         assetDir.toFile().mkdirs()
-        val cssFileWriter = assetDir.resolve("style.css").outputStream()
-        val cssResource =
-            MinecraftClient.getInstance().resourceManager.getResource(Identifier.of(ColeusClient.NAME, "style.css"))
-                .get()
-        cssResource.inputStream.transferTo(cssFileWriter)
-        cssFileWriter.close()
+        includeResource(Identifier.of(ColeusClient.NAME, "style.css"), "style.css")
+        includeResource(Identifier.of(ColeusClient.NAME, "font/karla/karla-variablefont_wght.ttf"), "Karla-VariableFont_wght.ttf")
+        includeResource(Identifier.of(ColeusClient.NAME, "font/karla/ofl.txt"), "OFL.txt")
+
+        writeThemeCss()
+    }
+
+    private fun includeResource(id: Identifier, outPath: String? = null) {
+        val client = MinecraftClient.getInstance()
+        val outFile = outPath?.let { assetDir.resolve(it) } ?: assetDir.resolve(id.path)
+        outFile.parent.toFile().mkdirs()
+
+        val fileWriter = outFile.outputStream()
+        val resource = client.resourceManager.getResource(id).get()
+        resource.inputStream.transferTo(fileWriter)
+        fileWriter.close()
+    }
+
+    private fun writeThemeCss() {
+        val client = MinecraftClient.getInstance()
+        val outFile =  assetDir.resolve("theme.css")
+        outFile.parent.toFile().mkdirs()
+        val resource = client.resourceManager.getResource(Identifier.of(ColeusClient.NAME, "base16theme/gruvbox.json")).get()
+        val css = Base16Theme.fromJsonResource(resource).toCss()
+        outFile.writeText(css)
     }
 
     private fun generatePage(id: Identifier, title: String, content: String, filename: String? = null) {
@@ -86,18 +105,23 @@ internal class HtmlBookGenerator(private val book: Book) {
 
         val writer = file.writer()
 
-        val html = TagCreator.html(
-            TagCreator.head(
-                TagCreator.link()
+        val html = html(
+            head(
+                link()
+                    .withRel("stylesheet")
+                    .withHref("${assetDir.resolve("theme.css").relativeTo(path.parent)}"),
+                link()
                     .withRel("stylesheet")
                     .withHref("${assetDir.resolve("style.css").relativeTo(path.parent)}")
             ),
-            TagCreator.body(
+            body(
                 sidebar(id),
-                TagCreator.main(
-                    TagCreator.h1(title),
-                    processor.process(content)
-                )
+                div(
+                    main(
+                        h1(title),
+                        processor.process(content)
+                    )
+                ).withClass("page")
             )
         )
 
@@ -107,7 +131,7 @@ internal class HtmlBookGenerator(private val book: Book) {
 
 
     private fun sidebar(currentPage: Identifier): DivTag {
-        val sidebar = TagCreator.div(buildEntryList(book.entries().filter { it.categories.isEmpty() }, currentPage))
+        val sidebar = div(buildEntryList(book.entries().filter { it.categories.isEmpty() }, currentPage))
             .withClass("sidebar")
         return sidebar.with(buildCategoryList(book.categories(), currentPage))
     }
@@ -117,10 +141,10 @@ internal class HtmlBookGenerator(private val book: Book) {
             val a = if (category.id == currentPage)
                 a(strong("${index + 1} ${category.title}"))
             else
-                a(strong("${index + 1}"), TagCreator.text(" ${category.title}"))
+                a(strong("${index + 1}"), text(" ${category.title}"))
 
-            TagCreator.li(
-                TagCreator.div(
+            li(
+                div(
                     a.withHref(
                         bookDir.resolve("${category.id.path}.html").relativeTo(bookDir.resolve(currentPage.path).parent)
                             .toString()
@@ -146,7 +170,7 @@ internal class HtmlBookGenerator(private val book: Book) {
                     a.withText(entry.title)
                 }
 
-                TagCreator.li(
+                li(
                     a.withHref(
                         bookDir.resolve(
                             "${entry.id.path}.html"
@@ -156,7 +180,7 @@ internal class HtmlBookGenerator(private val book: Book) {
             })
     }
 
-    private fun unlabeledOl(): OlTag = TagCreator.ol().withStyle("list-style-type: none")
+    private fun unlabeledOl(): OlTag = ol().withStyle("list-style-type: none")
 
     private val template = object : ComponentSource {
         override fun <C : Component> template(

@@ -1,49 +1,65 @@
-body {
-display: flex;
+@font-face {
+    font-family: karla;
+    src: url("./Karla-VariableFont_wght.ttf");
 }
 
+
+body {
+  display: flex;
+  font-family: karla;
+  background-color: var(--base00);
+  color: var(--base05);
+  max-height: 100vh;
+  margin: 0;
+}
+
+main {
+    width: 60em;
+    margin: auto;
+}
+
+.page {
+    width: 100%;
+    overflow: scroll;
+    max-height: 100vh;
+}
+
+a:link {
+  color: var(--base0D);
+}
+
+a:visited {
+  color: color-mix(in srgb, var(--base0D), black 10%);
+}
+
+a:hover {
+  color: color-mix(in srgb, var(--base0D), white 10%);
+}
+
+hr {
+    color: var(--base03);
+}
+
+::selection {
+    background-color: var(--base02);
+}
+
+
 .sidebar {
-  width: 22em;
-  min-width: 22em;
+  width: 25em;
   font-size: small;
+  overflow: scroll;
+  border-right: solid 1px var(--base03);
 }
 
 .sidebar li {
   margin: 0.5em;
 }
 
-.crafting-preview {
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-    width: fit-content;
+.sidebar li strong {
+    font-weight: 800;
 }
 
-.crafting-preview-ingredient-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-
-    width: fit-content;
-    height: fit-content;
-}
-
-.crafting-preview-ingredient-grid, .crafting-preview-ingredient-grid > * {
-    box-sizing: border-box;
-    border: solid grey 2px;
-}
-.crafting-preview-arrow {
-  --t: 45%; /* control the tail part */
-  --h: 40%; /* control the head part */
-
-  align-self: center;
-  margin: 10px 10px;
-
-  width: 100px;
-  height: 60px;
-  background: grey;
-  clip-path: polygon(0 calc(50% - var(--t)/2),calc(100% - var(--h)) calc(50% - var(--t)/2),calc(100% - var(--h)) 0,100% 50%,calc(100% - var(--h)) 100%,calc(100% - var(--h)) calc(50% + var(--t)/2),0 calc(50% + var(--t)/2));
-
-}
 
 .crafting-preview-result {
     align-self: center;
@@ -67,4 +83,69 @@ display: flex;
 
 .embedded-component:hover + .embedded-component-tooltip {
     display: block;
+}
+
+
+.black {
+  color: var(--base05);
+}
+
+.dark_blue {
+  color: var(--base0D);
+}
+
+.dark_green {
+  color: var(--base0B);
+}
+
+.dark_aqua {
+  color: var(--base0C);
+}
+
+.dark_red {
+  color: var(--base08);
+}
+
+.dark_purple {
+  color: var(--base0E);
+}
+
+.gold {
+  color: var(--base09);
+}
+
+.gray {
+  color: var(--base03);
+}
+
+.dark_gray {
+  color: var(--base04);
+}
+
+.blue {
+  color: var(--base0D);
+}
+
+.green {
+  color: var(--base0B);
+}
+
+.aqua {
+  color: var(--base0C);
+}
+
+.red {
+  color: var(--base08);
+}
+
+.light_purple {
+  color: var(--base0E);
+}
+
+.yellow {
+  color: var(--base0A);
+}
+
+.white {
+  color: var(--base00);
 }
