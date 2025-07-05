@@ -15,11 +15,15 @@
 }
 ```
 
-and let's also have some **markdown** here
+and a better [link](^lavender-flower:profound_page)
 
-> a very profound quote
+and a betterer [link](^lavender-flower:profound_page#0)
 
-and a [link](https://wispforest.io)
+and a betterer [link](^lavender-flower:profound_page#1)
+
+and a betterer [link](^lavender-flower:profound_page#2)
+
+and a betterer [link](^lavender-flower:profound_page#3)
 
 ---
 

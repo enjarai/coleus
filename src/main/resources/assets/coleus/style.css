@@ -9,7 +9,7 @@ body {
   font-family: karla;
   background-color: var(--base00);
   color: var(--base05);
-  max-height: 100vh;
+  height: 100%;
   margin: 0;
 }
 
@@ -21,7 +21,7 @@ main {
 .page {
     width: 100%;
     overflow: scroll;
-    max-height: 100vh;
+    height: 100%;
 }
 
 a:link {
@@ -49,6 +49,7 @@ hr {
   width: 25em;
   font-size: small;
   overflow: scroll;
+  height: 100%;
   border-right: solid 1px var(--base03);
 }
 
@@ -60,13 +61,9 @@ hr {
     font-weight: 800;
 }
 
-
-.crafting-preview-result {
-    align-self: center;
-}
-
-.crafting-preview-result > img {
-    border: solid grey 3px;
+.recipe-preview {
+  display: flex;
+  justify-content: center;
 }
 
 .embedded-component-container {

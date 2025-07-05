@@ -89,7 +89,7 @@ internal class HtmlBookGenerator(private val book: Book) {
 
         val bookTexture = book.texture() ?: Lavender.id("textures/gui/brown_book.png")
         val processor = MarkdownProcessor(
-            { HtmlCompiler(path, bookDir.resolve("assets")) },
+            { HtmlCompiler(path, bookDir, bookDir.resolve("assets")) },
             BasicFormattingFeature(),
             ColorFeature(),
             LinkFeature(),
@@ -100,7 +100,8 @@ internal class HtmlBookGenerator(private val book: Book) {
             HtmlRecipeFeature(template, LavenderBookScreenAccessor.getRecipeHandler()[book.id()]),
             HtmlOwoUIModelFeature(),
             HtmlItemStackFeature(world.registryManager),
-            HtmlBlockStateFeature()
+            HtmlBlockStateFeature(),
+            ImageFeature(),
         )
 
         val writer = file.writer()

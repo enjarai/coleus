@@ -8,14 +8,16 @@ import j2html.tags.DomContent
 import j2html.tags.specialized.DivTag
 import mod.master_bw3.coleus.Components.owo
 import mod.master_bw3.coleus.Components.tooltip
+import net.minecraft.text.ClickEvent
 import net.minecraft.text.Style
 import net.minecraft.util.Identifier
 import java.nio.file.Path
 import java.util.*
 import java.util.function.UnaryOperator
 import kotlin.collections.ArrayDeque
+import kotlin.io.path.relativeTo
 
-public class HtmlCompiler(private val pagePath: Path, private val extraResourcesDir: Path) : MarkdownCompiler<DivTag> {
+public class HtmlCompiler(private val pagePath: Path, private val rootDir: Path, private val extraResourcesDir: Path) : MarkdownCompiler<DivTag> {
 
     private var root: DivTag = div()
     private var nodes: ArrayDeque<ContainerTag<*>> = ArrayDeque(listOf(root))
@@ -24,8 +26,8 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
 
     private var prevListDepth = 0
     private var listDepth = 0
-
     private var newParagraph = true
+    private var pageIndex = 1;
 
     override fun visitText(text: String) {
         if (text.matches(Regex("\n+"))) {
@@ -61,6 +63,34 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
             } else {
                 pushTag(span().withStyle("color: " + color.hexCode))
             }
+        }
+        style.clickEvent?.let { clickEvent ->
+
+            when (clickEvent.action) {
+                ClickEvent.Action.OPEN_URL -> pushTag(a().withHref(resolveLinkTarget(clickEvent.value)))
+                else -> {}
+            }
+        }
+//        style.hoverEvent?.getValue(HoverEvent.Action.SHOW_TEXT)?.let { text ->
+//            pushTag(span().with(Components.text(text).withClass("hover-text")))
+//        }
+    }
+
+    private fun resolveLinkTarget(link: String): String {
+        val start = link.first()
+        val linkParts = link.drop(1).split("#")
+        val identifier = Identifier.tryParse(linkParts.first())
+        val section = linkParts.getOrNull(1)
+
+
+        return if (identifier != null && start == '^') {
+            val pagePath = rootDir.resolve("${identifier.path}.html").relativeTo(pagePath.parent)
+            var newLink = pagePath.toString()
+            if (section != null) newLink += "#$section"
+
+            newLink
+        } else {
+            link
         }
     }
 
@@ -107,13 +137,17 @@ public class HtmlCompiler(private val pagePath: Path, private val extraResources
     }
 
     public fun visitPageBreak() {
+        pageIndex++
+
+        popToRoot()
+        nodesTop.with(div().withId(pageIndex.toString()))
     }
 
     public fun visitTemplate(template: (pagePath: Path, extraResourcesDir: Path) -> DomContent) {
         nodesTop.with(template(pagePath, extraResourcesDir))
     }
 
-    public fun visitComponent(component: Component, className: String, scale: Int = 1) {
+    public fun visitComponent(component: Component, className: String, scale: Int = 2) {
         val outDir = extraResourcesDir.resolve("component")
         outDir.parent.toFile().mkdirs()
         val uuid = UUID.randomUUID()

@@ -149,7 +149,7 @@ public object Components {
     }
 
     @JvmStatic
-    public fun text(text: Text): DomContent {
+    public fun text(text: Text):Tag<*> {
         return constructText(text)
     }
 
