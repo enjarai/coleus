@@ -51,10 +51,10 @@ public class HtmlCompiler(private val pagePath: Path, private val rootDir: Path,
             pushTag(span().withClass("obfuscated"))
         }
         if (style.isUnderlined) {
-            pushTag(span().withClass("underlined"))
+            pushTag(u())
         }
         if (style.isStrikethrough) {
-            pushTag(span().withClass("underlined"))
+            pushTag(s())
         }
         val color = style.color;
         if (color != null) {
@@ -99,7 +99,7 @@ public class HtmlCompiler(private val pagePath: Path, private val rootDir: Path,
     }
 
     override fun visitBlockQuote() {
-        pushTag(div().withClass("blockQuote"))
+        pushTag(blockquote().withClass("block-quote"))
     }
 
     override fun visitBlockQuoteEnd() {

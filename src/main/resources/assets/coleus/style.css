@@ -70,6 +70,10 @@ hr {
   stroke: var(--base05);
 }
 
+.menu-button:hover svg {
+  stroke: var(--base07);
+}
+
 #sidebar {
   min-width: calc(min(25em, 80vw));
   width: 25em;
@@ -79,14 +83,17 @@ hr {
   border-right: solid 1px var(--base03);
 }
 
+#sidebar ol {
+  padding-left: 1em;
+}
+
 #sidebar li {
-  margin: 0.5em;
+  margin: 0.5em 0;
 }
 
 #sidebar li strong {
   font-weight: 800;
 }
-
 
 .recipe-preview {
   display: flex;
@@ -113,6 +120,11 @@ hr {
   max-width: 100%;
 }
 
+.block-quote {
+  border-left: solid 2px var(--base05);
+  padding-left: 1em;
+  margin: 0.5em 0;
+}
 
 .black {
   color: var(--base05);
