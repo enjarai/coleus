@@ -1,27 +1,31 @@
 @font-face {
-    font-family: karla;
-    src: url("./Karla-VariableFont_wght.ttf");
+  font-family: karla;
+  src: url("./Karla-VariableFont_wght.ttf");
 }
-
 
 body {
   display: flex;
   font-family: karla;
   background-color: var(--base00);
   color: var(--base05);
+  width: 100%;
   height: 100%;
   margin: 0;
 }
 
 main {
-    width: 60em;
-    margin: auto;
+  width: 62em;
+  max-width: 100vw;
+  margin: auto;
+  padding: 0 1em;
+  box-sizing: border-box;
 }
 
 .page {
-    width: 100%;
-    overflow: scroll;
-    height: 100%;
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: clip;
 }
 
 a:link {
@@ -37,15 +41,37 @@ a:hover {
 }
 
 hr {
-    color: var(--base03);
+  color: var(--base03);
 }
 
 ::selection {
-    background-color: var(--base02);
+  background-color: var(--base02);
+}
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: solid 1px var(--base03);
+  padding: 0.5em;
+  background-color: var(--base00);
 }
 
 
-.sidebar {
+.menu-button {
+  width: 2em;
+  height: 2em;
+  background: transparent;
+  padding: 0;
+  border: 0;
+}
+
+.menu-button svg {
+  stroke: var(--base05);
+}
+
+#sidebar {
+  min-width: calc(min(25em, 80vw));
   width: 25em;
   font-size: small;
   overflow: scroll;
@@ -53,13 +79,14 @@ hr {
   border-right: solid 1px var(--base03);
 }
 
-.sidebar li {
+#sidebar li {
   margin: 0.5em;
 }
 
-.sidebar li strong {
-    font-weight: 800;
+#sidebar li strong {
+  font-weight: 800;
 }
+
 
 .recipe-preview {
   display: flex;
@@ -67,19 +94,23 @@ hr {
 }
 
 .embedded-component-container {
-    position: relative;
+  position: relative;
 }
 
 .embedded-component-tooltip {
-    display: none;
-    position: absolute;
-    left: 0;
-    top: 100%;
-    z-index: 10;
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 10;
 }
 
 .embedded-component:hover + .embedded-component-tooltip {
-    display: block;
+  display: block;
+}
+
+.embedded-component {
+  max-width: 100%;
 }
 
 

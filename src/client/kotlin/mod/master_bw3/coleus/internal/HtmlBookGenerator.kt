@@ -11,6 +11,7 @@ import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.parsing.UIModel
 import j2html.TagCreator.*
 import j2html.rendering.FlatHtml
+import j2html.tags.UnescapedText
 import j2html.tags.specialized.DivTag
 import j2html.tags.specialized.OlTag
 import mod.master_bw3.coleus.Base16Theme
@@ -53,7 +54,10 @@ internal class HtmlBookGenerator(private val book: Book) {
 
         assetDir.toFile().mkdirs()
         includeResource(Identifier.of(ColeusClient.NAME, "style.css"), "style.css")
-        includeResource(Identifier.of(ColeusClient.NAME, "font/karla/karla-variablefont_wght.ttf"), "Karla-VariableFont_wght.ttf")
+        includeResource(
+            Identifier.of(ColeusClient.NAME, "font/karla/karla-variablefont_wght.ttf"),
+            "Karla-VariableFont_wght.ttf"
+        )
         includeResource(Identifier.of(ColeusClient.NAME, "font/karla/ofl.txt"), "OFL.txt")
 
         writeThemeCss()
@@ -72,9 +76,10 @@ internal class HtmlBookGenerator(private val book: Book) {
 
     private fun writeThemeCss() {
         val client = MinecraftClient.getInstance()
-        val outFile =  assetDir.resolve("theme.css")
+        val outFile = assetDir.resolve("theme.css")
         outFile.parent.toFile().mkdirs()
-        val resource = client.resourceManager.getResource(Identifier.of(ColeusClient.NAME, "base16theme/gruvbox.json")).get()
+        val resource =
+            client.resourceManager.getResource(Identifier.of(ColeusClient.NAME, "base16theme/gruvbox.json")).get()
         val css = Base16Theme.fromJsonResource(resource).toCss()
         outFile.writeText(css)
     }
@@ -108,6 +113,9 @@ internal class HtmlBookGenerator(private val book: Book) {
 
         val html = html(
             head(
+                meta()
+                    .withName("viewport")
+                    .attr("content", "width=device-width,initial-scale=1"),
                 link()
                     .withRel("stylesheet")
                     .withHref("${assetDir.resolve("theme.css").relativeTo(path.parent)}"),
@@ -115,14 +123,17 @@ internal class HtmlBookGenerator(private val book: Book) {
                     .withRel("stylesheet")
                     .withHref("${assetDir.resolve("style.css").relativeTo(path.parent)}")
             ),
-            body(
-                sidebar(id),
-                div(
+            body().with(
+                sidebar(id).withId("sidebar").attr("data-open", "true"),
+                div().withClass("page").with(
+                    div().withClass("toolbar").with(
+                        menuButton().withClass("menu-button")
+                    ),
                     main(
                         h1(title),
                         processor.process(content)
                     )
-                ).withClass("page")
+                )
             )
         )
 
@@ -133,7 +144,6 @@ internal class HtmlBookGenerator(private val book: Book) {
 
     private fun sidebar(currentPage: Identifier): DivTag {
         val sidebar = div(buildEntryList(book.entries().filter { it.categories.isEmpty() }, currentPage))
-            .withClass("sidebar")
         return sidebar.with(buildCategoryList(book.categories(), currentPage))
     }
 
@@ -198,4 +208,24 @@ internal class HtmlBookGenerator(private val book: Book) {
         }
 
     }
+
+    private fun menuButton() =
+        button().attr("onclick",
+            """
+            const btn = this;
+            const sidebar = document.getElementById('sidebar');
+            const visible = sidebar.dataset.open === 'true';
+            sidebar.style.display = visible ? 'none' : 'block';
+            sidebar.dataset.open = visible ? 'false' : 'true';
+            """.trimIndent()
+        ).with(UnescapedText(
+            """
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 7L4 7" stroke-width="1.5"/>
+            <path d="M20 12L4 12" stroke-width="1.5"/>
+            <path d="M20 17L4 17" stroke-width="1.5"/>
+            </svg>
+            """.trimIndent())
+        ).attr("aria-label", "toggle menu")
+
 }
