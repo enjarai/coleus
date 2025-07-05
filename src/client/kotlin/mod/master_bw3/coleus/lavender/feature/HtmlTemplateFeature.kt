@@ -13,10 +13,7 @@ import io.wispforest.lavendermd.util.ListNibbler
 import io.wispforest.lavendermd.util.StringNibbler
 import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.parsing.UIModelLoader
-import io.wispforest.owo.ui.parsing.UIModelParsingException
-import j2html.TagCreator.p
 import j2html.tags.DomContent
-import mod.master_bw3.coleus.Components
 import mod.master_bw3.coleus.Components.owo
 import mod.master_bw3.coleus.HtmlTemplateRegistry
 import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
@@ -29,7 +26,7 @@ internal typealias TemplateFn = (pagePath: Path, extraResourcesDir: Path) -> Dom
 
 public class HtmlTemplateFeature(
     private val htmlTemplateSource: HtmlTemplateProvider = defaultHtmlTemplateProvider,
-    private val owoUITemplateSource: OwoUITemplateFeature.TemplateProvider = defaultOwoUITemplateFeature,
+    private val owoUITemplateSource: OwoUITemplateFeature.TemplateProvider = defaultOwoUITemplateProvider,
     private val extraParams: Map<String, String> = mapOf()
 ) : MarkdownFeature {
     override fun name(): String {
@@ -69,12 +66,12 @@ public class HtmlTemplateFeature(
 
     override fun registerNodes(registrar: NodeRegistrar) {
         registrar.registerNode<TemplateToken>(
-            ParseFunction { parser: Parser, templateToken: TemplateToken, tokens: ListNibbler<Lexer.Token> ->
+            { parser: Parser, templateToken: TemplateToken, tokens: ListNibbler<Lexer.Token> ->
                 TemplateNode(
                     templateToken.modelId, templateToken.templateName, templateToken.params
                 )
             },
-            BiFunction { token: Lexer.Token, tokens: ListNibbler<Lexer.Token> -> token as? TemplateToken }
+            { token: Lexer.Token, tokens: ListNibbler<Lexer.Token> -> token as? TemplateToken }
         )
     }
 
@@ -91,39 +88,40 @@ public class HtmlTemplateFeature(
         private val params: String
     ) : Parser.Node() {
         override fun visitStart(compiler: MarkdownCompiler<*>) {
-            var paramReader = StringNibbler(params)
-            var builtParams = HashMap<String, String>()
+            val paramReader = StringNibbler(params)
+            val builtParams = HashMap<String, String>()
 
             while (paramReader.hasNext()) {
-                var paramName = paramReader.consumeUntil('=')!!
-                var paramValue = paramReader.consumeEscapedString(',', true)!!
+                val paramName = paramReader.consumeUntil('=')!!
+                val paramValue = paramReader.consumeEscapedString(',', true)!!
 
                 builtParams[paramName] = paramValue
             }
             builtParams += extraParams
 
-            var template = this@HtmlTemplateFeature.htmlTemplateSource.template(
-                modelId,
-                templateName,
-                builtParams
-            ) ?: { pagePath: Path, extraResourcesDir: Path ->
-                p("no html template registered for $modelId $templateName")
-                    .withStyle("color: red")
+            val htmlTemplateProvider = {
+                this@HtmlTemplateFeature.htmlTemplateSource
+                    .template(
+                        modelId,
+                        templateName,
+                        builtParams
+                    )
             }
 
-//            if (template == null) {
-//                val component = this@HtmlTemplateFeature.owoUITemplateSource.template(
-//                    modelId,
-//                    Component::class.java,
-//                    templateName,
-//                    builtParams,
-//                ) ?: throw Exception("no template found for $modelId")
-//
-//                template = { pagePath: Path, extraResourcesDir: Path ->
-//                    val imagePath = extraResourcesDir.resolve(modelId.namespace).resolve("${modelId.path}_${UUID.randomUUID()}.png")
-//                    owo(component, pagePath, imagePath, 500)
-//                }
-//            } TODO: owo component to image
+
+            val owoUITemplateProvider = {
+                adaptOwoUITemplate(owoUITemplateSource)
+                    .template(
+                        modelId,
+                        templateName,
+                        builtParams
+                    )
+            }
+
+
+            val template = htmlTemplateProvider()
+                ?: owoUITemplateProvider()
+                ?: throw Exception("no template found for $modelId")
 
 
             (compiler as HtmlCompiler).visitTemplate(template)
@@ -152,17 +150,37 @@ public class HtmlTemplateFeature(
                 }
             }
 
-        private val defaultOwoUITemplateFeature = object : OwoUITemplateFeature.TemplateProvider {
+        private val defaultOwoUITemplateProvider = object : OwoUITemplateFeature.TemplateProvider {
             override fun <C : Component> template(
                 model: Identifier,
                 expectedClass: Class<C>,
                 templateName: String,
                 templateParams: Map<String, String>
             ): C? {
-                var uiModel = UIModelLoader.get(model);
-                if (uiModel == null) return null
+                var uiModel = UIModelLoader.get(model) ?: return null;
 
                 return uiModel.expandTemplate(expectedClass, templateName, templateParams);
+            }
+        }
+
+        private fun adaptOwoUITemplate(
+            templateProvider: OwoUITemplateFeature.TemplateProvider,
+        ) = HtmlTemplateProvider { templateId: Identifier,
+                                   templateName: String,
+                                   templateParams: MutableMap<String, String> ->
+
+            val component = templateProvider.template(
+                templateId,
+                Component::class.java,
+                templateName,
+                templateParams
+            ) ?: return@HtmlTemplateProvider null
+
+            { pagePath: Path, extraResourcesDir: Path ->
+                val imagePath =
+                    extraResourcesDir.resolve(templateId.namespace)
+                        .resolve("${templateId.path}_${UUID.randomUUID()}.png")
+                owo(component, pagePath, imagePath, 500)
             }
         }
     }

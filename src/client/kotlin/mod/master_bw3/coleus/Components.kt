@@ -2,35 +2,24 @@ package mod.master_bw3.coleus
 
 import com.glisco.isometricrenders.render.ItemRenderable
 import com.glisco.isometricrenders.render.RenderableDispatcher
+import com.mojang.blaze3d.platform.GlConst
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.systems.VertexSorter
 import io.wispforest.owo.ui.component.Components
-import io.wispforest.owo.ui.container.Containers
-import io.wispforest.owo.ui.container.Containers.stack
-import io.wispforest.owo.ui.core.Color
-import io.wispforest.owo.ui.core.Component
-import io.wispforest.owo.ui.core.OwoUIAdapter
-import io.wispforest.owo.ui.core.OwoUIDrawContext
-import io.wispforest.owo.ui.core.Size
-import io.wispforest.owo.ui.core.Sizing
-import j2html.TagCreator.em
-import j2html.TagCreator.img
-import j2html.TagCreator.span
-import j2html.TagCreator.strong
+import io.wispforest.owo.ui.core.*
+import j2html.TagCreator.*
 import j2html.tags.ContainerTag
 import j2html.tags.DomContent
 import j2html.tags.Tag
 import j2html.tags.specialized.ImgTag
-import mod.master_bw3.coleus.internal.OwoHtmlComponent
-import mod.master_bw3.coleus.internal.OwoUIComponentRenderable
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.SimpleFramebuffer
 import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.render.DiffuseLighting
 import net.minecraft.client.texture.NativeImage
 import net.minecraft.item.ItemStack
 import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.minecraft.util.math.RotationAxis
-import org.lwjgl.opengl.GL30C
+import org.joml.Matrix4f
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
 
@@ -46,8 +35,48 @@ public object Components {
 
     @JvmStatic
     public fun owo(component: Component, pagePath: Path, imageOutPath: Path, size: Int = 100): ImgTag {
+        val client = MinecraftClient.getInstance()
+        val framebuffer = SimpleFramebuffer(size, size, true, false)
+        val tickCounter = client.renderTickCounter;
+        val context = DrawContext(client, client.bufferBuilders.entityVertexConsumers)
 
-        val image = OwoHtmlComponent(component).drawIntoImage(size)
+        RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC)
+        val matrix4f = Matrix4f()
+            .setOrtho(
+                0.0f,
+                size.toFloat(),
+                size.toFloat(),
+                0.0f,
+                1000.0f,
+                21000.0f
+            )
+        RenderSystem.backupProjectionMatrix()
+        RenderSystem.setProjectionMatrix(matrix4f, VertexSorter.BY_Z)
+        val modelViewStack = RenderSystem.getModelViewStack()
+        modelViewStack.pushMatrix()
+        modelViewStack.translation(0.0f, 0.0f, -11000.0f)
+        RenderSystem.applyModelViewMatrix()
+        DiffuseLighting.enableGuiDepthLighting()
+
+        framebuffer.beginWrite(true)
+        component.inflate(Size.of(framebuffer.textureWidth, framebuffer.textureHeight))
+        component.mount(null, 0, 0)
+        component.draw(OwoUIDrawContext.of(context), 0, 0, tickCounter.getTickDelta(false), tickCounter.lastFrameDuration)
+        context.draw()
+        framebuffer.endWrite()
+
+        modelViewStack.popMatrix()
+        RenderSystem.applyModelViewMatrix()
+        DiffuseLighting.disableGuiDepthLighting()
+        RenderSystem.restoreProjectionMatrix()
+
+        val image = NativeImage(framebuffer.textureWidth, framebuffer.textureHeight, false);
+
+        framebuffer.beginRead();
+        image.loadFromTextureImage(0, false);
+        image.mirrorVertically()
+        framebuffer.delete();
+
         imageOutPath.parent.toFile().mkdirs()
         image.writeTo(imageOutPath)
         return img().withSrc(imageOutPath.relativeTo(pagePath.parent).toString())

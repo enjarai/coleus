@@ -59,23 +59,12 @@ internal object ColeusClient : ClientModInitializer {
 				override fun reload(manager: ResourceManager) {
 					if (MinecraftClient.getInstance().world == null) return
 					MinecraftClient.getInstance().execute {
-//                        val component = Containers.verticalFlow(Sizing.fill(), Sizing.fill())
-//						component.child(Components.button(Text.literal("hey there!")) {  } as Component)
-//						component.child(Components.button(Text.literal("Joe!")) {  } as Component)
-//						val component = Components.button(Text.literal("hey there!")) {  } as Component
-						val component = Components.box(Sizing.fill(), Sizing.fill())
-						component.fill(true)
-						component.color(Color.RED)
-
-						println("GENERATING IMAGE")
-                        owo(
-                            component,
-                            FabricLoader.getInstance().gameDir.resolve("test.png"),
-                            FabricLoader.getInstance().gameDir.resolve("test.png"),
-							600
-                        )
-                    }
-
+						println("generating books")
+						BookLoader.loadedBooks().forEach {
+							println("generating book: ${it.id()}")
+							HtmlBookGenerator(it).generate()
+						}
+					}
                 }
 
 

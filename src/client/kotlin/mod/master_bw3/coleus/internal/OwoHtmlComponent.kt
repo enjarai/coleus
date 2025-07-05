@@ -73,7 +73,7 @@ internal class OwoHtmlComponent(private val component: Component) {
 
         var tickCounter = client.renderTickCounter
         val context = DrawContext(client, client.bufferBuilders.entityVertexConsumers)
-        val adapter = OwoUIAdapter.createWithoutScreen(0, 0,  framebuffer.viewportHeight, framebuffer.viewportWidth, Containers::stack)
+        val adapter = OwoUIAdapter.createWithoutScreen(0, 0,  framebuffer.viewportHeight, framebuffer.viewportWidth, Containers::verticalFlow)
         adapter.rootComponent.child(component)
         adapter.inflateAndMount()
         adapter.render(context, 0, 0, tickCounter.lastFrameDuration)
