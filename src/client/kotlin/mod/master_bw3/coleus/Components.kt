@@ -6,6 +6,7 @@ import com.mojang.blaze3d.platform.GlConst
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.systems.VertexSorter
 import io.wispforest.owo.ui.component.Components
+import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.core.*
 import j2html.TagCreator.*
 import j2html.tags.ContainerTag
@@ -34,18 +35,23 @@ public object Components {
     }
 
     @JvmStatic
-    public fun owo(component: Component, pagePath: Path, imageOutPath: Path, size: Int = 100): ImgTag {
+    public fun owo(component: Component, pagePath: Path, imageOutPath: Path, imageSize: Int = 100, scale: Int = 1): ImgTag {
         val client = MinecraftClient.getInstance()
-        val framebuffer = SimpleFramebuffer(size, size, true, false)
+        val framebuffer = SimpleFramebuffer(imageSize, imageSize, true, false)
         val tickCounter = client.renderTickCounter;
         val context = DrawContext(client, client.bufferBuilders.entityVertexConsumers)
+
+        val box = Components.box(Sizing.fill(), Sizing.fill())
+        box.color(Color.BLUE)
+        box.positioning(Positioning.absolute(0, 0))
+        (component as FlowLayout).child(box)
 
         RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC)
         val matrix4f = Matrix4f()
             .setOrtho(
                 0.0f,
-                size.toFloat(),
-                size.toFloat(),
+                imageSize.toFloat(),
+                imageSize.toFloat(),
                 0.0f,
                 1000.0f,
                 21000.0f
@@ -58,13 +64,17 @@ public object Components {
         RenderSystem.applyModelViewMatrix()
         DiffuseLighting.enableGuiDepthLighting()
 
-        framebuffer.beginWrite(true)
-        component.inflate(Size.of(framebuffer.textureWidth, framebuffer.textureHeight))
+        context.matrices.push()
+        context.matrices.scale(scale.toFloat(), scale.toFloat(), 0f)
+        component.inflate(Size.of(framebuffer.textureWidth / scale, framebuffer.textureHeight / scale))
         component.mount(null, 0, 0)
+
+        framebuffer.beginWrite(true)
         component.draw(OwoUIDrawContext.of(context), 0, 0, tickCounter.getTickDelta(false), tickCounter.lastFrameDuration)
         context.draw()
         framebuffer.endWrite()
 
+        context.matrices.pop()
         modelViewStack.popMatrix()
         RenderSystem.applyModelViewMatrix()
         DiffuseLighting.disableGuiDepthLighting()
@@ -79,6 +89,7 @@ public object Components {
 
         imageOutPath.parent.toFile().mkdirs()
         image.writeTo(imageOutPath)
+        image.close()
         return img().withSrc(imageOutPath.relativeTo(pagePath.parent).toString())
     }
 
