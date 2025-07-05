@@ -38,8 +38,10 @@ public object Components {
 
     @JvmStatic
     public fun owo(component: Component, pagePath: Path, imageOutPath: Path, imageSize: Int = 100, scale: Int = 1): ImgTag {
+        component.inflate(Size.of(imageSize / scale, imageSize / scale))
+
         val client = MinecraftClient.getInstance()
-        val framebuffer = SimpleFramebuffer(imageSize, imageSize, true, false)
+        val framebuffer = SimpleFramebuffer(component.width() * scale, component.height() * scale, true, false)
         val tickCounter = client.renderTickCounter;
         val context = DrawContext(client, client.bufferBuilders.entityVertexConsumers)
 
@@ -47,8 +49,8 @@ public object Components {
         val matrix4f = Matrix4f()
             .setOrtho(
                 0.0f,
-                imageSize.toFloat(),
-                imageSize.toFloat(),
+                framebuffer.textureWidth.toFloat(),
+                framebuffer.textureHeight.toFloat(),
                 0.0f,
                 0f,
                 21000.0f
@@ -62,9 +64,7 @@ public object Components {
         DiffuseLighting.enableGuiDepthLighting()
 
         context.matrices.push()
-        context.matrices.scale(scale.toFloat(), scale.toFloat(), 100.0f)
-        component.inflate(Size.of(framebuffer.textureWidth / scale, framebuffer.textureHeight / scale))
-        context.matrices.translate(-component.x().toDouble(), -component.y().toDouble(), 0.0)
+        context.matrices.scale(scale.toFloat(), scale.toFloat(), 50f)
 
         component.mount(null, 0, 0)
 
