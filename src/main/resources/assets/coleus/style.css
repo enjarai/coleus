@@ -3,6 +3,10 @@
   src: url("./Karla-VariableFont_wght.ttf");
 }
 
+html {
+  height: 100vh;
+}
+
 body {
   display: flex;
   font-family: karla;
@@ -26,6 +30,43 @@ main {
   height: 100%;
   overflow-y: scroll;
   overflow-x: clip;
+  position: relative;
+}
+
+#search-overlay {
+  background: var(--base00);
+  border: solid 1px var(--base04);
+  position: absolute;
+  top: 7em;
+  left: 50%;
+  width: 50em;
+  max-width: 100vw;
+
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1em 0;;
+}
+
+#search {
+  box-sizing: border-box;
+  width: 55em;
+  margin-bottom: 2em;
+  background-color: var(--base01);
+  padding: 0.5em;
+  color: var(--base05);
+  border: solid 1px var(--base04);
+}
+
+#search:focus {
+  border-color: var(--base0C);
+  outline-width: 1px;
+}
+
+:focus {
+  outline: solid 2px var(--base0C);
 }
 
 a:link {
@@ -58,20 +99,20 @@ hr {
 }
 
 
-.menu-button {
+#menu-button, #search-button {
   width: 2em;
   height: 2em;
   background: transparent;
-  padding: 0;
+  padding: 5px;
   border: 0;
 }
 
-.menu-button svg {
-  stroke: var(--base05);
+#menu-button svg, #search-button svg {
+  fill: var(--base05);
 }
 
-.menu-button:hover svg {
-  stroke: var(--base07);
+#menu-button:hover svg, #search-button:hover svg {
+  fill: var(--base07);
 }
 
 #sidebar {
@@ -93,6 +134,11 @@ hr {
 
 #sidebar li strong {
   font-weight: 800;
+}
+
+.lavender-book_components-item-spotlight {
+  width: 100%;
+  image-rendering: pixelated;
 }
 
 .recipe-preview {

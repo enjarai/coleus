@@ -180,7 +180,7 @@ public class HtmlTemplateFeature(
                 val imagePath =
                     extraResourcesDir.resolve("component").resolve(templateId.namespace)
                         .resolve("${templateId.path}_${templateName}_${UUID.randomUUID()}.png")
-                owo(component, pagePath, imagePath, 500, 2)
+                owo(component, pagePath, imagePath, 350, 2)
                     .withClass("${templateId.namespace}-${templateId.path}-$templateName")
             }
         }

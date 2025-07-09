@@ -1,11 +1,14 @@
 package mod.master_bw3.coleus
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import net.minecraft.resource.Resource
 import java.util.stream.Collectors
 
 public data class Base16Theme(
+    val name: String,
     val base00: String,
     val base01: String,
     val base02: String,
@@ -56,6 +59,18 @@ public data class Base16Theme(
                 resource.reader.lines().collect(Collectors.joining("\n")),
                 Base16Theme::class.java
             )
+        }
+
+        @JvmStatic
+        public fun collectionFromJsonResource(resource: Resource): Map<String, Base16Theme> {
+            val gson = Gson()
+            val mapType = object : TypeToken<Map<String, Base16Theme>>() {}.type
+            val themeMap: Map<String, Base16Theme> = gson.fromJson(
+                resource.reader.lines().collect(Collectors.joining("\n")),
+                mapType
+            )
+
+            return themeMap
         }
     }
 }

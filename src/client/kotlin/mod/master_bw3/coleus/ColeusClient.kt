@@ -10,6 +10,7 @@ import mod.master_bw3.coleus.Components.owo
 import mod.master_bw3.coleus.internal.HtmlBookGenerator
 import mod.master_bw3.coleus.internal.registerHtmlTemplates
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener
@@ -38,6 +39,14 @@ internal object ColeusClient : ClientModInitializer {
 
 	override fun onInitializeClient() {
 		registerHtmlTemplates()
+
+		ClientLifecycleEvents.CLIENT_STARTED.register { client ->
+			val resource =
+				client.resourceManager.getResource(Identifier.of(NAME, "base16theme/base16.json")).get()
+			val themes = Base16Theme.collectionFromJsonResource(resource)
+			ThemeRegistry.putAll(themes.mapKeys { Identifier.of(NAME, it.key.lowercase()) })
+		}
+
 
 		ClientPlayConnectionEvents.JOIN.register { handler, sender, client ->
 			client.execute {
