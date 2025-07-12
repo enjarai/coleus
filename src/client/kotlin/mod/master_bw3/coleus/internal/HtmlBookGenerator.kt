@@ -1,6 +1,5 @@
 package mod.master_bw3.coleus.internal
 
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import io.wispforest.lavender.Lavender
 import io.wispforest.lavender.book.Book
@@ -15,8 +14,12 @@ import io.wispforest.owo.ui.parsing.UIModel
 import j2html.TagCreator.*
 import j2html.rendering.FlatHtml
 import j2html.tags.UnescapedText
+import j2html.tags.specialized.ATag
 import j2html.tags.specialized.DivTag
+import j2html.tags.specialized.LinkTag
 import j2html.tags.specialized.OlTag
+import j2html.tags.specialized.ScriptTag
+import j2html.tags.specialized.SelectTag
 import mod.master_bw3.coleus.ColeusClient
 import mod.master_bw3.coleus.SearchEntry
 import mod.master_bw3.coleus.ThemeRegistry
@@ -27,9 +30,11 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.Identifier
 import java.nio.file.Path
+import java.util.stream.Collectors
 import kotlin.io.path.outputStream
 import kotlin.io.path.relativeTo
-import kotlin.io.path.writeText
+import kotlin.io.path.writer
+import kotlin.jvm.optionals.getOrNull
 
 internal class HtmlBookGenerator(private val book: Book) {
 
@@ -40,8 +45,22 @@ internal class HtmlBookGenerator(private val book: Book) {
 
     private val searchEntries: MutableList<SearchEntry> = mutableListOf()
 
+    private val config: BookConfig? by lazy {
+        val configResource = MinecraftClient.getInstance().resourceManager.getResource(Identifier.of(book.id().namespace, "coleus/book.json"))
+
+        val builder = GsonBuilder().create()
+
+       configResource.map {
+           builder.fromJson(
+               configResource.get().reader.lines().collect(Collectors.joining("\n")),
+               BookConfig::class.java
+           )
+       }.getOrNull()
+    }
+
     internal fun generate() {
         bookDir.toFile().deleteRecursively()
+
 
         book.entries().forEach { entry ->
             val path = bookDir.resolve("${entry.id.path}.html")
@@ -66,12 +85,26 @@ internal class HtmlBookGenerator(private val book: Book) {
             "Karla-VariableFont_wght.ttf"
         )
         includeResource(Identifier.of(ColeusClient.NAME, "font/karla/ofl.txt"), "OFL.txt")
-        includeResource(Identifier.of(ColeusClient.NAME, "search.js"), "search.js")
+        includeResource(Identifier.of(ColeusClient.NAME, "coleus.js"), "coleus.js")
         includeThemes()
+
+        config?.css?.forEach {
+            val id = Identifier.of(it)
+            val resource = MinecraftClient.getInstance().resourceManager.getResource(id).getOrNull()
+            if (resource != null) {
+                val outFile = assetDir.resolve(id.namespace).resolve(id.path)
+                outFile.parent.toFile().mkdirs()
+                val outputStream = outFile.toFile().outputStream()
+                resource.inputStream.transferTo(outputStream)
+                outputStream.close()
+            }
+        }
 
         val searchEntriesFile = assetDir.resolve("searchEntries.json").toFile()
         searchEntriesFile.writeText(GsonBuilder().create().toJson(searchEntries))
     }
+
+
 
 
     private fun includeResource(id: Identifier, outPath: String? = null) {
@@ -79,21 +112,19 @@ internal class HtmlBookGenerator(private val book: Book) {
         val outFile = outPath?.let { assetDir.resolve(it) } ?: assetDir.resolve(id.path)
         outFile.parent.toFile().mkdirs()
 
-        val fileWriter = outFile.outputStream()
+        val outputStream = outFile.outputStream()
         val resource = client.resourceManager.getResource(id).get()
-        resource.inputStream.transferTo(fileWriter)
-        fileWriter.close()
+        resource.inputStream.transferTo(outputStream)
+        outputStream.close()
     }
 
     private fun includeThemes() {
-        val themeDir = assetDir.resolve("themes")
-        themeDir.toFile().mkdirs()
+        val outFile = assetDir.resolve("themes.json")
+        outFile.parent.toFile().mkdirs()
+        val writer = outFile.writer()
 
-        ThemeRegistry.forEach { (name, theme) ->
-            val outFile = themeDir.resolve("${name}.css")
-            val css = theme.toCss()
-            outFile.writeText(css)
-        }
+        GsonBuilder().create().toJson(ThemeRegistry, writer)
+        writer.close()
     }
 
     private fun generateSearchEntry(id: Identifier, title: String, content: String, path: Path) {
@@ -111,7 +142,7 @@ internal class HtmlBookGenerator(private val book: Book) {
             SearchEntry(
                 title,
                 body,
-                path.toString(),
+                "${path.relativeTo(bookDir)}",
             )
         )
     }
@@ -119,6 +150,9 @@ internal class HtmlBookGenerator(private val book: Book) {
     private fun generatePage(id: Identifier, title: String, content: String, path: Path) {
         val world = MinecraftClient.getInstance().world
             ?: throw AssertionError("world must be present to generate book")
+
+        val defaultThemeIdentifier = config?.defaultTheme?.let(Identifier::of) ?: Identifier.of(ColeusClient.NAME, "default")
+        val defaultTheme = ThemeRegistry[defaultThemeIdentifier]!!
 
         val file = path.toFile()
         file.parentFile.mkdirs()
@@ -142,29 +176,29 @@ internal class HtmlBookGenerator(private val book: Book) {
 
         val writer = file.writer()
         writer.write("<!DOCTYPE html>")
-        val html = html(
+        val html = html().withStyle(defaultTheme.toCss()).with(
             head(
+                loadThemeScript(),
                 meta()
                     .withName("viewport")
                     .attr("content", "width=device-width,initial-scale=1"),
                 link()
                     .withRel("stylesheet")
-                    .withHref("${assetDir.resolve("themes/coleus:default.css").relativeTo(path.parent)}"),
-                link()
-                    .withRel("stylesheet")
                     .withHref("${assetDir.resolve("style.css").relativeTo(path.parent)}"),
                 script()
                     .withType("module")
-                    .withSrc("${assetDir.resolve("search.js").relativeTo(path.parent)}")
+                    .withSrc("${assetDir.resolve("coleus.js").relativeTo(path.parent)}")
                     .attr("data-assetspath", assetDir.relativeTo(path.parent).toString())
+                    .attr("data-path", path.relativeTo(bookDir).toString())
                     .withId("search-script")
-            ),
+            ).with(extraCSS(id)),
             body().with(
                 sidebar(id).withId("sidebar").attr("data-open", "true"),
                 div().withClass("page").with(
                     div().withClass("toolbar").with(
                         menuButton().withId("menu-button"),
-                        searchButton().withId("search-button")
+                        searchButton().withId("search-button"),
+                        themeSelect(defaultThemeIdentifier).withId("theme-select")
                     ),
                     main(
                         h1(title),
@@ -179,52 +213,64 @@ internal class HtmlBookGenerator(private val book: Book) {
     }
 
     private fun sidebar(currentPage: Identifier): DivTag {
-        val sidebar = div(buildEntryList(book.entries().filter { it.categories.isEmpty() }, currentPage))
-        return sidebar.with(buildCategoryList(book.categories(), currentPage))
+        val uncategorizedOl = unlabeledOl()
+        book.landingPage()?.let {
+            uncategorizedOl.with(buildPageLink(it.id, it.title, currentPage, pagePath = "index"))
+        }
+
+        val uncategorized = book.entries().filter { it.categories.isEmpty() }
+        val sidebar = div().with(buildEntryList(uncategorizedOl, uncategorized, currentPage))
+        return sidebar.with(buildCategoryList(unlabeledOl(), book.categories(), currentPage))
     }
 
-    private fun buildCategoryList(categories: Collection<Category>, currentPage: Identifier): OlTag {
-        return unlabeledOl().with(categories.sortedBy(Category::ordinal).mapIndexed { index, category ->
-            val a = if (category.id == currentPage)
-                a(strong("${index + 1} ${category.title}"))
-            else
-                a(strong("${index + 1}"), text(" ${category.title}"))
+    private fun buildPageLink(pageId: Identifier, pageTitle: String, currentPage: Identifier, categoryIndex: Int? = null, index: Int? = null, pagePath: String? = null): ATag {
+        val a = a()
+        if (categoryIndex != null) {
+            val strong = strong("${categoryIndex + 1}")
+            if (index != null) strong.withText(".${index + 1} ")
+            a.with(strong.withText(" "))
+        }
+        if (pageId == currentPage) {
+            a.with(strong(pageTitle))
+        } else {
+            a.withText(pageTitle)
+        }
+        return a.withHref(
+            bookDir.resolve(
+                "${pagePath ?: pageId.path}.html"
+            ).relativeTo(bookDir.resolve(currentPage.path).parent).toString())
+    }
 
+    private fun buildCategoryList(ol: OlTag, categories: Collection<Category>, currentPage: Identifier): OlTag {
+        return ol.with(categories.sortedBy(Category::ordinal).mapIndexed { index, category ->
             li(
                 div(
-                    a.withHref(
-                        bookDir.resolve("${category.id.path}.html").relativeTo(bookDir.resolve(currentPage.path).parent)
-                            .toString()
-                    ),
+                    buildPageLink(category.id, category.title, currentPage, index),
                     book.entriesByCategory(category)?.let {
-                        buildEntryList(it, currentPage, index)
+                        buildEntryList(unlabeledOl(), it, currentPage, index)
                     }
                 )
             )
         })
     }
 
-    private fun buildEntryList(entries: Collection<Entry>, currentPage: Identifier, categoryIndex: Int? = null): OlTag {
-        return unlabeledOl().with(
+    private fun buildEntryList(ol: OlTag, entries: Collection<Entry>, currentPage: Identifier, categoryIndex: Int? = null): OlTag {
+        return ol.with(
             entries.sortedBy(Entry::ordinal).mapIndexed { index, entry ->
-                val a = a()
-                if (categoryIndex != null) {
-                    a.with(strong("${categoryIndex + 1}.${index + 1} "))
-                }
-                if (entry.id == currentPage) {
-                    a.with(strong(entry.title))
-                } else {
-                    a.withText(entry.title)
-                }
-
                 li(
-                    a.withHref(
-                        bookDir.resolve(
-                            "${entry.id.path}.html"
-                        ).relativeTo(bookDir.resolve(currentPage.path).parent).toString()
-                    )
+                    buildPageLink(entry.id, entry.title, currentPage, categoryIndex, index)
                 )
             })
+    }
+
+    private fun extraCSS(currentPage: Identifier): List<LinkTag> {
+        val css = config?.css ?: listOf()
+        return css.map {
+            val id = Identifier.of(it)
+            link()
+                .withRel("stylesheet")
+                .withHref(assetDir.resolve(id.namespace).resolve(id.path).relativeTo(bookDir.resolve(currentPage.path).parent).toString())
+        }
     }
 
     private fun unlabeledOl(): OlTag = ol().withStyle("list-style-type: none")
@@ -243,6 +289,25 @@ internal class HtmlBookGenerator(private val book: Book) {
             return model.expandTemplate(expectedComponentClass, name, params)
         }
 
+    }
+
+    private fun loadThemeScript(): ScriptTag {
+        return script("""
+            let themeCSS = JSON.parse(sessionStorage.getItem("themeCSS"))
+            for (const entry of themeCSS) {
+                document.documentElement.style.setProperty(`--${'$'}{entry[0]}`, `#${'$'}{entry[1]}`);
+            }
+            """.trimIndent()).attr("is:inline")
+    }
+
+    private fun themeSelect(default: Identifier): SelectTag {
+        return select().with(
+            ThemeRegistry.map { theme ->
+                option(theme.value.scheme).withValue(theme.key.toString())
+                    .withCondSelected(theme.key == default)
+                    .attr("autocomplete", "off")
+            }
+        )
     }
 
     private fun menuButton() =
@@ -273,4 +338,5 @@ internal class HtmlBookGenerator(private val book: Book) {
             </svg>
             """.trimIndent()
         ))
+
 }

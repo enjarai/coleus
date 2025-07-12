@@ -8,7 +8,7 @@ import net.minecraft.resource.Resource
 import java.util.stream.Collectors
 
 public data class Base16Theme(
-    val name: String,
+    val scheme: String,
     val base00: String,
     val base01: String,
     val base02: String,
@@ -29,7 +29,6 @@ public data class Base16Theme(
 
     public fun toCss(): String {
         val builder = StringBuilder()
-        builder.appendLine(":root {")
         builder.appendLine("\t--base00: #$base00;")
         builder.appendLine("\t--base01: #$base01;")
         builder.appendLine("\t--base02: #$base02;")
@@ -46,7 +45,6 @@ public data class Base16Theme(
         builder.appendLine("\t--base0D: #$base0D;")
         builder.appendLine("\t--base0E: #$base0E;")
         builder.appendLine("\t--base0F: #$base0F;")
-        builder.appendLine("}")
 
         return builder.toString()
     }
