@@ -80,7 +80,6 @@ window.addEventListener("load", () => {
             });
 
             resultContainer.innerHTML = ''
-            //console.log(searchResults)
 
             for (const entry of searchResults.hits) {
                 const highlighter = new Highlight()
@@ -88,8 +87,6 @@ window.addEventListener("load", () => {
                     entry.document.name + "\n" + entry.document.description,
                     searchBox.value
                 )
-                console.log(highlighted.positions)
-                console.log(highlighted.trim(100))
 
                 let entryDiv = document.createElement("div")
 

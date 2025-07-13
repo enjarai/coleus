@@ -31,20 +31,20 @@ import java.util.Map;
 @Mixin(LavenderBookScreen.class)
 public abstract class WebBookButtonMixin {
     @Final
-    @Shadow(remap = false)
+    @Shadow
     public boolean isOverlay;
 
     @Final
-    @Shadow(remap = false)
+    @Shadow
     public Book book;
 
-    @Inject(method = "build(Lio/wispforest/owo/ui/container/FlowLayout;)V", remap = false,
+    @Inject(method = "build(Lio/wispforest/owo/ui/container/FlowLayout;)V",
             at = @At(value = "INVOKE", target = "Lio/wispforest/lavender/client/LavenderBookScreen;rebuildContent(Lnet/minecraft/sound/SoundEvent;)V"))
     private void addWebBookButton(FlowLayout rootComponent, CallbackInfo ci) {
         if (!this.isOverlay) {
             this.component(FlowLayout.class, "primary-panel").child(
                     ((Component) ((ButtonComponent) this.template("web-book-button")).onPress(buttonComponent -> {
-                        Util.getOperatingSystem().open("localhost:7070/"+book.id().getNamespace()+"/"+book.id().getPath()+"/index.html");
+                        Util.getOperatingSystem().open("localhost:1984/"+book.id().getNamespace()+"/"+book.id().getPath()+"/index.html");
                     })).id("web-book-button").positioning(Positioning.relative(104, 90))
             );
         }
@@ -63,6 +63,6 @@ public abstract class WebBookButtonMixin {
         return model.expandTemplate(Component.class, name, Map.of());
     }
 
-    @Shadow(remap = false)
+    @Shadow
     protected abstract <C extends Component> @NotNull C component(Class<C> expectedClass, String id);
 }
