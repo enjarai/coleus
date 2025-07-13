@@ -12,7 +12,7 @@ import java.util.Map;
 @Mixin(LavenderBookScreen.class)
 public interface LavenderBookScreenAccessor {
 
-	@Accessor("RECIPE_HANDLERS")
+	@Accessor(value = "RECIPE_HANDLERS", remap = false)
 	static Map<Identifier, Map<RecipeType<?>, RecipeFeature.RecipePreviewBuilder<?>>> getRecipeHandler() {
 		throw new AssertionError();
 	}

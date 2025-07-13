@@ -1,0 +1,22 @@
+<owo-ui xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/wisp-forest/owo-lib/1.20.3/owo-ui.xsd">
+    <templates>
+        <template name="web-book-button">
+            <button>
+                <renderer>
+                    <texture texture="coleus:textures/gui/sprites/web_book_icon.png" u="0" v="0"
+                             texture-width="16" texture-height="32"/>
+                </renderer>
+
+                <tooltip-text translate="true">text.coleus.book.open_web_book</tooltip-text>
+
+                <sizing>
+                    <horizontal method="fixed">16</horizontal>
+                    <vertical method="fixed">16</vertical>
+                </sizing>
+
+                <positioning type="absolute">-9,150</positioning>
+            </button>
+        </template>
+    </templates>
+</owo-ui>

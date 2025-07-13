@@ -1,5 +1,7 @@
 package mod.master_bw3.coleus
 
+import io.javalin.Javalin
+import io.javalin.http.staticfiles.Location
 import io.wispforest.lavender.book.BookLoader
 import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.container.Containers
@@ -40,9 +42,12 @@ internal object ColeusClient : ClientModInitializer {
 	override fun onInitializeClient() {
 		registerHtmlTemplates()
 
+		val booksDir = FabricLoader.getInstance().gameDir.resolve("coleus")
+		booksDir.toFile().mkdirs()
+		val app = Javalin.create { javalinConfig -> javalinConfig.staticFiles.add(booksDir.toString(), Location.EXTERNAL) }.start(7070)
+
 		ClientLifecycleEvents.CLIENT_STARTED.register { client ->
-			val resource =
-				client.resourceManager.getResource(Identifier.of(NAME, "base16theme/base16.json")).get()
+			val resource = client.resourceManager.getResource(Identifier.of(NAME, "base16theme/base16.json")).get()
 			val themes = Base16Theme.collectionFromJsonResource(resource)
 			ThemeRegistry.putAll(themes.mapKeys { Identifier.of(NAME, it.key.lowercase()) })
 		}
@@ -50,37 +55,10 @@ internal object ColeusClient : ClientModInitializer {
 
 		ClientPlayConnectionEvents.JOIN.register { handler, sender, client ->
 			client.execute {
-				println("generating books")
 				BookLoader.loadedBooks().forEach {
-					println("generating book: ${it.id()}")
 					HtmlBookGenerator(it).generate()
 				}
 			}
 		}
-
-		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(
-			object : SimpleSynchronousResourceReloadListener {
-
-				override fun getFabricId(): Identifier? {
-					return Identifier.of(NAME, "test")
-				}
-
-				override fun reload(manager: ResourceManager) {
-					if (MinecraftClient.getInstance().world == null) return
-					MinecraftClient.getInstance().execute {
-						println("generating books")
-						BookLoader.loadedBooks().forEach {
-							println("generating book: ${it.id()}")
-							HtmlBookGenerator(it).generate()
-						}
-					}
-                }
-
-
-			} as IdentifiableResourceReloadListener
-		)
-
 	}
-
-
 }

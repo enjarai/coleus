@@ -63,7 +63,7 @@ dependencies {
     modImplementation "io.wispforest:lavender:${project.lavender_version}"
 
     include(implementation "com.j2html:j2html:${project.j2html_version}")
-
+    include(implementation("io.javalin:javalin:${project.javalin_version}"))
 //    testmodImplementation sourceSets.main.output
 }
 

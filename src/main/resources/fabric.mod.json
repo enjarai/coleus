@@ -3,15 +3,14 @@
 	"id": "coleus",
 	"version": "${version}",
 	"name": "Coleus",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Addon for Lavender that creates web versions of guidebooks",
 	"authors": [
-		"Me!"
+		"Master-Bw3"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/Master-Bw3/Coleus"
 	},
-	"license": "CC0-1.0",
+	"license": "WTFPL",
 	"icon": "assets/coleus/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -48,8 +47,5 @@
 		"fabric-api": "*",
 		"fabric-language-kotlin": "*",
 		"lavender": ">=0.1.15+1.21"
-	},
-	"suggests": {
-		"another-mod": "*"
 	}
 }

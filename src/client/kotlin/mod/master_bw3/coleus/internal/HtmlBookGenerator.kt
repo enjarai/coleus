@@ -64,7 +64,7 @@ internal class HtmlBookGenerator(private val book: Book) {
        }.getOrNull()
     }
 
-    internal fun generate() {
+    internal fun generate(): Path {
         bookDir.toFile().deleteRecursively()
         includeThemes()
 
@@ -118,6 +118,8 @@ internal class HtmlBookGenerator(private val book: Book) {
 
         val searchEntriesFile = assetDir.resolve("searchEntries.json").toFile()
         searchEntriesFile.writeText(GsonBuilder().create().toJson(searchEntries))
+
+        return bookDir
     }
 
 
@@ -209,20 +211,16 @@ internal class HtmlBookGenerator(private val book: Book) {
                 themeSelect(defaultThemeIdentifier).withId("theme-select")
             ),
         )
+
         val page = div().withId("page")
         val main = main(
             h1(title),
-            processor.process(content)
+            processor.process(content),
+            div().withId("mobile-page-nav").with(
+                prevPage?.let { prevPageButton(path, prevPage).withId("prev-page-mobile") } ?: div(),
+                nextPage?.let { nextPageButton(path, nextPage).withId("next-page-mobile") } ?: div()
+            )
         )
-        // mobile page switch buttons
-        val mobilePageNavButtonContainer = div().withId("mobile-page-nav")
-        prevPage?.let { mobilePageNavButtonContainer.with(
-            prevPageButton(path, prevPage).withId("prev-page-mobile")
-        )}
-        nextPage?.let { mobilePageNavButtonContainer.with(
-            nextPageButton(path, nextPage).withId("next-page-mobile")
-        )}
-        main.with(mobilePageNavButtonContainer)
         page.with(main)
         outerPage.with(page)
 

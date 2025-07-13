@@ -1,11 +1,12 @@
 {
-	"required": true,
-	"package": "mod.master_bw3.coleus.mixin.client",
-	"compatibilityLevel": "JAVA_21",
-	"client": [
-		"LavenderBookScreenAccessor"
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "package": "mod.master_bw3.coleus.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "LavenderBookScreenAccessor",
+    "WebBookButtonMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }

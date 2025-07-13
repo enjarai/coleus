@@ -12,7 +12,6 @@ import mod.master_bw3.coleus.PageContext
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.Style
 import net.minecraft.util.Identifier
-import java.nio.file.Path
 import java.util.*
 import java.util.function.UnaryOperator
 import kotlin.collections.ArrayDeque
@@ -45,40 +44,49 @@ public class HtmlBookCompiler(private val context: PageContext) : MarkdownCompil
 
     override fun visitStyle(styleFn: UnaryOperator<Style>) {
         if (nodes.size == 1) pushTag(p())
+
         val style = styleFn.apply(Style.EMPTY)
+        var styleTag: ContainerTag<*> = span()
+        nodesTop.with(styleTag)
+        fun <TAG : ContainerTag<*>> appendStyle(tag: TAG) {
+            styleTag.with(tag)
+            styleTag = tag
+        }
+
         if (style.isBold) {
-            pushTag(strong())
+            appendStyle(strong())
         }
         if (style.isItalic) {
-            pushTag(em())
+            appendStyle(em())
         }
         if (style.isObfuscated) {
-            pushTag(span().withClass("obfuscated"))
+            appendStyle(span().withClass("obfuscated"))
         }
         if (style.isUnderlined) {
-            pushTag(u())
+            appendStyle(u())
         }
         if (style.isStrikethrough) {
-            pushTag(s())
+            appendStyle(s())
         }
         val color = style.color;
         if (color != null) {
             if (color.name != color.hexCode) {
-                pushTag(span().withClass(color.name))
+                appendStyle(span().withClass(color.name))
             } else {
-                pushTag(span().withStyle("color: " + color.hexCode))
+                appendStyle(span().withStyle("color: " + color.hexCode))
             }
         }
         style.clickEvent?.let { clickEvent ->
 
             when (clickEvent.action) {
-                ClickEvent.Action.OPEN_URL -> pushTag(a().withHref(resolveLinkTarget(clickEvent.value)))
+                ClickEvent.Action.OPEN_URL -> appendStyle(a().withHref(resolveLinkTarget(clickEvent.value)))
                 else -> {}
             }
         }
 //        style.hoverEvent?.getValue(HoverEvent.Action.SHOW_TEXT)?.let { text ->
 //            pushTag(span().with(Components.text(text).withClass("hover-text")))
 //        }
+        nodes.add(styleTag)
     }
 
     private fun resolveLinkTarget(link: String): String {
