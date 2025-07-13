@@ -9,5 +9,5 @@ Each book can also be located in the `coleus` directory of the instance folder.
 ## For Developers
 Coleus will be able to generate a book for any lavender book without any addition setup.
 However, you may want to customize the appearance of the web book for your mod.
-Instructions on how to do this are located [here]()
+Instructions on how to do this are located on the [wiki](https://github.com/Master-Bw3/Coleus/wiki/Customization-Guide).
 
