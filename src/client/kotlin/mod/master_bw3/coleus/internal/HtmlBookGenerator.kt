@@ -7,7 +7,6 @@ import io.wispforest.lavender.book.Category
 import io.wispforest.lavender.book.Entry
 import io.wispforest.lavender.md.compiler.BookCompiler.ComponentSource
 import io.wispforest.lavendermd.MarkdownProcessor
-import io.wispforest.lavendermd.compiler.TextCompiler
 import io.wispforest.lavendermd.feature.*
 import io.wispforest.owo.ui.core.Component
 import io.wispforest.owo.ui.parsing.UIModel
@@ -16,14 +15,17 @@ import j2html.rendering.FlatHtml
 import j2html.tags.UnescapedText
 import j2html.tags.specialized.ATag
 import j2html.tags.specialized.DivTag
+import j2html.tags.specialized.FormTag
 import j2html.tags.specialized.LinkTag
 import j2html.tags.specialized.OlTag
 import j2html.tags.specialized.ScriptTag
 import j2html.tags.specialized.SelectTag
+import mod.master_bw3.coleus.Base16Theme
+import mod.master_bw3.coleus.PageContext
 import mod.master_bw3.coleus.ColeusClient
 import mod.master_bw3.coleus.SearchEntry
 import mod.master_bw3.coleus.ThemeRegistry
-import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
+import mod.master_bw3.coleus.lavender.compiler.HtmlBookCompiler
 import mod.master_bw3.coleus.lavender.feature.*
 import mod.master_bw3.coleus.mixin.client.LavenderBookScreenAccessor
 import net.fabricmc.loader.api.FabricLoader
@@ -31,12 +33,16 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.util.Identifier
 import java.nio.file.Path
 import java.util.stream.Collectors
+import kotlin.collections.sortedWith
 import kotlin.io.path.outputStream
 import kotlin.io.path.relativeTo
 import kotlin.io.path.writer
 import kotlin.jvm.optionals.getOrNull
 
 internal class HtmlBookGenerator(private val book: Book) {
+
+    private val categoryComparator = compareBy {  it: Category -> it.ordinal }.thenBy { it.title.lowercase() }
+    private val entryComparator = compareBy {  it: Entry -> it.ordinal }.thenBy { it.title.lowercase() }
 
     private val bookDir: Path =
         FabricLoader.getInstance().gameDir.resolve(ColeusClient.NAME).resolve(book.id().namespace)
@@ -60,22 +66,33 @@ internal class HtmlBookGenerator(private val book: Book) {
 
     internal fun generate() {
         bookDir.toFile().deleteRecursively()
+        includeThemes()
 
+        val orderedPages = mutableListOf<Page>()
 
-        book.entries().forEach { entry ->
-            val path = bookDir.resolve("${entry.id.path}.html")
-            generatePage(entry.id, entry.title, entry.content, path)
-            generateSearchEntry(entry.id, entry.title, entry.content, path)
-        }
-
-        book.categories().forEach { category ->
-            val path = bookDir.resolve("${category.id.path}.html")
-            generatePage(category.id, category.title, category.content, path)
-        }
-
-        book.landingPage()?.run {
+        book.landingPage()?.let { entry ->
             val path = bookDir.resolve("index.html")
-            generatePage(id, title, content, path)
+            orderedPages.add(Page(entry.id, entry.title, entry.content, path))
+        }
+
+        book.entries().filter { it.categories.isEmpty() }.sortedWith(entryComparator).forEach { entry ->
+            val path = bookDir.resolve("${entry.id.path}.html")
+            orderedPages.add(Page(entry.id, entry.title, entry.content, path))
+        }
+
+        book.categories().sortedWith(categoryComparator).forEach { category ->
+            val path = bookDir.resolve("${category.id.path}.html")
+            orderedPages.add(Page(category.id, category.title, category.content, path))
+
+            book.entriesByCategory(category)?.sortedWith(entryComparator)?.forEach { entry ->
+                val path = bookDir.resolve("${entry.id.path}.html")
+                orderedPages.add(Page(entry.id, entry.title, entry.content, path))
+            }
+        }
+
+        orderedPages.forEachIndexed { index, page ->
+            generatePage(page.id, page.title, page.content, page.path,
+                orderedPages.getOrNull(index-1)?.path, orderedPages.getOrNull(index+1)?.path)
         }
 
         assetDir.toFile().mkdirs()
@@ -86,7 +103,6 @@ internal class HtmlBookGenerator(private val book: Book) {
         )
         includeResource(Identifier.of(ColeusClient.NAME, "font/karla/ofl.txt"), "OFL.txt")
         includeResource(Identifier.of(ColeusClient.NAME, "coleus.js"), "coleus.js")
-        includeThemes()
 
         config?.css?.forEach {
             val id = Identifier.of(it)
@@ -119,6 +135,15 @@ internal class HtmlBookGenerator(private val book: Book) {
     }
 
     private fun includeThemes() {
+        val client = MinecraftClient.getInstance()
+
+        config?.themes?.forEach { theme ->
+            val resource = client.resourceManager.getResource(Identifier.of(theme.location)).getOrNull()
+            if (resource != null) ThemeRegistry.put(Identifier.of(theme.id), Base16Theme.fromJsonResource(resource))
+            else ColeusClient.logger.atWarn().log("could not find resource ${theme.location} for theme ${theme.id}")
+        }
+
+
         val outFile = assetDir.resolve("themes.json")
         outFile.parent.toFile().mkdirs()
         val writer = outFile.writer()
@@ -127,39 +152,43 @@ internal class HtmlBookGenerator(private val book: Book) {
         writer.close()
     }
 
-    private fun generateSearchEntry(id: Identifier, title: String, content: String, path: Path) {
-        val processor = MarkdownProcessor(
-            { TextCompiler() }, BasicFormattingFeature(),
-            ColorFeature(),
-            LinkFeature(),
-            ListFeature(),
-            BlockQuoteFeature(),
-            ImageFeature(),
-        )
-        val body = processor.process(content).string
 
-        searchEntries.add(
-            SearchEntry(
-                title,
-                body,
-                "${path.relativeTo(bookDir)}",
-            )
-        )
-    }
+    private fun generatePage(id: Identifier, title: String, content: String, path: Path, prevPage: Path?, nextPage: Path?) {
+        val pageContext: PageContext = object : PageContext {
+            override fun addSearchEntry(searchEntry: SearchEntry) = this@HtmlBookGenerator.addSearchEntry(searchEntry)
 
-    private fun generatePage(id: Identifier, title: String, content: String, path: Path) {
+            override val pagePath: Path = path
+
+            override val bookDir: Path = this@HtmlBookGenerator.bookDir
+
+            override val assetsDir: Path = this@HtmlBookGenerator.assetDir
+        }
+
         val world = MinecraftClient.getInstance().world
             ?: throw AssertionError("world must be present to generate book")
 
-        val defaultThemeIdentifier = config?.defaultTheme?.let(Identifier::of) ?: Identifier.of(ColeusClient.NAME, "default")
-        val defaultTheme = ThemeRegistry[defaultThemeIdentifier]!!
+        var defaultThemeIdentifier = config?.default_theme?.let(Identifier::of)
+        var defaultTheme: Base16Theme?
+
+
+        if (defaultThemeIdentifier != null) {
+            defaultTheme = ThemeRegistry[defaultThemeIdentifier]
+            if (defaultTheme == null) {
+                ColeusClient.logger.atWarn().log("could not find default theme $id for book ${book.id()}")
+                defaultThemeIdentifier = Identifier.of(ColeusClient.NAME, "default")
+                defaultTheme = ThemeRegistry[defaultThemeIdentifier]!!
+            }
+        } else {
+            defaultThemeIdentifier = Identifier.of(ColeusClient.NAME, "default")
+            defaultTheme = ThemeRegistry[defaultThemeIdentifier]!!
+        }
 
         val file = path.toFile()
         file.parentFile.mkdirs()
 
         val bookTexture = book.texture() ?: Lavender.id("textures/gui/brown_book.png")
         val processor = MarkdownProcessor(
-            { HtmlCompiler(path, bookDir, bookDir.resolve("assets")) },
+            { HtmlBookCompiler(pageContext) },
             BasicFormattingFeature(),
             ColorFeature(),
             LinkFeature(),
@@ -173,6 +202,38 @@ internal class HtmlBookGenerator(private val book: Book) {
             HtmlItemStackFeature(world.registryManager),
             HtmlBlockStateFeature(),
         )
+        val outerPage = div().withId("outer-page").with(
+            div().withClass("toolbar").with(
+                menuButton().withId("menu-button"),
+                searchButton().withId("search-button"),
+                themeSelect(defaultThemeIdentifier).withId("theme-select")
+            ),
+        )
+        val page = div().withId("page")
+        val main = main(
+            h1(title),
+            processor.process(content)
+        )
+        // mobile page switch buttons
+        val mobilePageNavButtonContainer = div().withId("mobile-page-nav")
+        prevPage?.let { mobilePageNavButtonContainer.with(
+            prevPageButton(path, prevPage).withId("prev-page-mobile")
+        )}
+        nextPage?.let { mobilePageNavButtonContainer.with(
+            nextPageButton(path, nextPage).withId("next-page-mobile")
+        )}
+        main.with(mobilePageNavButtonContainer)
+        page.with(main)
+        outerPage.with(page)
+
+        //page switch buttons
+        prevPage?.let { outerPage.with(
+            prevPageButton(path, prevPage).withId("prev-page")
+        )}
+        nextPage?.let { outerPage.with(
+            nextPageButton(path, nextPage).withId("next-page")
+        )}
+
 
         val writer = file.writer()
         writer.write("<!DOCTYPE html>")
@@ -193,18 +254,19 @@ internal class HtmlBookGenerator(private val book: Book) {
                     .withId("search-script")
             ).with(extraCSS(id)),
             body().with(
-                sidebar(id).withId("sidebar").attr("data-open", "true"),
-                div().withClass("page").with(
-                    div().withClass("toolbar").with(
-                        menuButton().withId("menu-button"),
-                        searchButton().withId("search-button"),
-                        themeSelect(defaultThemeIdentifier).withId("theme-select")
-                    ),
-                    main(
-                        h1(title),
-                        processor.process(content)
-                    )
-                )
+                sidebar(id).withId("sidebar").attr("data-toggled", "true"),
+                outerPage
+            )
+        )
+
+        val searchEntry = StringBuilder()
+        main.render(FlatHtml.into(searchEntry))
+
+        addSearchEntry(
+            SearchEntry(
+                title,
+                searchEntry.toString().replace(Regex("<[^>]*>"), " "),
+                "${path.relativeTo(bookDir)}",
             )
         )
 
@@ -242,7 +304,7 @@ internal class HtmlBookGenerator(private val book: Book) {
     }
 
     private fun buildCategoryList(ol: OlTag, categories: Collection<Category>, currentPage: Identifier): OlTag {
-        return ol.with(categories.sortedBy(Category::ordinal).mapIndexed { index, category ->
+        return ol.with(categories.sortedWith(categoryComparator).mapIndexed { index, category ->
             li(
                 div(
                     buildPageLink(category.id, category.title, currentPage, index),
@@ -256,7 +318,7 @@ internal class HtmlBookGenerator(private val book: Book) {
 
     private fun buildEntryList(ol: OlTag, entries: Collection<Entry>, currentPage: Identifier, categoryIndex: Int? = null): OlTag {
         return ol.with(
-            entries.sortedBy(Entry::ordinal).mapIndexed { index, entry ->
+            entries.sortedWith(entryComparator).mapIndexed { index, entry ->
                 li(
                     buildPageLink(entry.id, entry.title, currentPage, categoryIndex, index)
                 )
@@ -294,20 +356,48 @@ internal class HtmlBookGenerator(private val book: Book) {
     private fun loadThemeScript(): ScriptTag {
         return script("""
             let themeCSS = JSON.parse(sessionStorage.getItem("themeCSS"))
-            for (const entry of themeCSS) {
-                document.documentElement.style.setProperty(`--${'$'}{entry[0]}`, `#${'$'}{entry[1]}`);
+            if (themeCSS !== null) {
+                for (const entry of themeCSS) {
+                    document.documentElement.style.setProperty(`--${'$'}{entry[0]}`, `#${'$'}{entry[1]}`);
+                }
             }
             """.trimIndent()).attr("is:inline")
     }
 
     private fun themeSelect(default: Identifier): SelectTag {
         return select().with(
-            ThemeRegistry.map { theme ->
-                option(theme.value.scheme).withValue(theme.key.toString())
-                    .withCondSelected(theme.key == default)
+            ThemeRegistry.toList().sortedBy { it.second.scheme }.map { (id, theme) ->
+                option(theme.scheme).withValue(id.toString())
+                    .withCondSelected(id == default)
                     .attr("autocomplete", "off")
             }
         )
+    }
+
+    private fun nextPageButton(path: Path, nextPage: Path): FormTag {
+        return form().withId("next-page-mobile").with(
+            label().with(
+                input().withType("submit"),
+                UnescapedText("""
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                    <path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/>
+                </svg>
+                """.trimIndent()))
+        ).withAction(nextPage.relativeTo(path.parent).toString())
+    }
+
+    private fun prevPageButton(path: Path, nextPage: Path): FormTag {
+        return form().withId("next-page-mobile").with(
+            label().with(
+                input().withType("submit"),
+                UnescapedText("""
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                    <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
+                </svg>
+                """.trimIndent()))
+        ).withAction(nextPage.relativeTo(path.parent).toString())
     }
 
     private fun menuButton() =
@@ -316,9 +406,8 @@ internal class HtmlBookGenerator(private val book: Book) {
             """
             const btn = this;
             const sidebar = document.getElementById('sidebar');
-            const visible = sidebar.dataset.open === 'true';
-            sidebar.style.display = visible ? 'none' : 'block';
-            sidebar.dataset.open = visible ? 'false' : 'true';
+            const toggled = sidebar.dataset.toggled === 'true';
+            sidebar.dataset.toggled = toggled ? 'false' : 'true';
             """.trimIndent()
         ).with(UnescapedText(
             """
@@ -339,4 +428,9 @@ internal class HtmlBookGenerator(private val book: Book) {
             """.trimIndent()
         ))
 
+    fun addSearchEntry(searchEntry: SearchEntry) {
+        searchEntries.add(searchEntry)
+    }
+
+    private class Page(val id: Identifier, val title: String, val content: String, val path: Path)
 }

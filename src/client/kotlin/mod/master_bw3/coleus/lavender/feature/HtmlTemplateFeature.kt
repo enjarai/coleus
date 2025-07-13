@@ -6,7 +6,6 @@ import io.wispforest.lavendermd.MarkdownFeature
 import io.wispforest.lavendermd.MarkdownFeature.NodeRegistrar
 import io.wispforest.lavendermd.MarkdownFeature.TokenRegistrar
 import io.wispforest.lavendermd.Parser
-import io.wispforest.lavendermd.Parser.ParseFunction
 import io.wispforest.lavendermd.compiler.MarkdownCompiler
 import io.wispforest.lavendermd.feature.OwoUITemplateFeature
 import io.wispforest.lavendermd.util.ListNibbler
@@ -16,13 +15,13 @@ import io.wispforest.owo.ui.parsing.UIModelLoader
 import j2html.tags.DomContent
 import mod.master_bw3.coleus.Components.owo
 import mod.master_bw3.coleus.HtmlTemplateRegistry
-import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
+import mod.master_bw3.coleus.PageContext
+import mod.master_bw3.coleus.lavender.compiler.HtmlBookCompiler
 import net.minecraft.util.Identifier
 import java.nio.file.Path
 import java.util.UUID
-import java.util.function.BiFunction
 
-internal typealias TemplateFn = (pagePath: Path, extraResourcesDir: Path) -> DomContent
+internal typealias TemplateFn = (context: PageContext) -> DomContent
 
 public class HtmlTemplateFeature(
     private val htmlTemplateSource: HtmlTemplateProvider = defaultHtmlTemplateProvider,
@@ -34,7 +33,7 @@ public class HtmlTemplateFeature(
     }
 
     override fun supportsCompiler(compiler: MarkdownCompiler<*>): Boolean {
-        return compiler is HtmlCompiler
+        return compiler is HtmlBookCompiler
     }
 
     override fun registerTokens(registrar: TokenRegistrar) {
@@ -124,7 +123,7 @@ public class HtmlTemplateFeature(
                 ?: throw Exception("no template found for $modelId")
 
 
-            (compiler as HtmlCompiler).visitTemplate(template)
+            (compiler as HtmlBookCompiler).visitTemplate(template)
         }
 
         override fun visitEnd(compiler: MarkdownCompiler<*>) {}
@@ -145,8 +144,8 @@ public class HtmlTemplateFeature(
                 val templateExpander = HtmlTemplateRegistry.registry[templateId]
                 if (templateExpander == null) return@HtmlTemplateProvider null
 
-                return@HtmlTemplateProvider { pagePath: Path, extraResourcesDir: Path ->
-                    templateExpander.expand(templateParams, pagePath, extraResourcesDir)
+                return@HtmlTemplateProvider { context: PageContext ->
+                    templateExpander.expand(templateParams, context)
                 }
             }
 
@@ -176,11 +175,12 @@ public class HtmlTemplateFeature(
                 templateParams
             ) ?: return@HtmlTemplateProvider null
 
-            { pagePath: Path, extraResourcesDir: Path ->
+            { context: PageContext ->
                 val imagePath =
-                    extraResourcesDir.resolve("component").resolve(templateId.namespace)
+                    context.assetsDir.resolve("component").resolve(templateId.namespace)
                         .resolve("${templateId.path}_${templateName}_${UUID.randomUUID()}.png")
-                owo(component, pagePath, imagePath, 350, 2)
+
+                owo(component, context.pagePath, imagePath, 350, 2)
                     .withClass("${templateId.namespace}-${templateId.path}-$templateName")
             }
         }

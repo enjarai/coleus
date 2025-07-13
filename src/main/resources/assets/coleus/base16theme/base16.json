@@ -300,7 +300,7 @@
     "base0F": "a16946"
   },
   "defaultLight": {
-    "scheme": "Default Light",
+    "scheme": "default light",
     "author": "Chris Kempson (http://chriskempson.com)",
     "base00": "f8f8f8",
     "base01": "e8e8e8",
@@ -320,7 +320,7 @@
     "base0F": "a16946"
   },
   "cupertino": {
-    "scheme": "Cupertino",
+    "scheme": "cupertino",
     "author": "Defman21",
     "base00": "ffffff",
     "base01": "c0c0c0",

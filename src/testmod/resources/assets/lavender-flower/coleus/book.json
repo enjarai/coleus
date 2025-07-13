@@ -1,4 +1,10 @@
 {
   "css": ["lavender-flower:coleus/lavender-flower.css"],
-  "default_theme": "coleus:atelierForest"
+  "themes": [
+    {
+      "id": "lavender-flower:gruvbox",
+      "location": "lavender-flower:coleus/gruvbox.json"
+    }
+  ],
+  "default_theme": "lavender-flower:gruvbox"
 }

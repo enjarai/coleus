@@ -16,7 +16,7 @@ import io.wispforest.owo.ui.core.Insets
 import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.Surface
 import io.wispforest.owo.ui.parsing.UIModel
-import mod.master_bw3.coleus.lavender.compiler.HtmlCompiler
+import mod.master_bw3.coleus.lavender.compiler.HtmlBookCompiler
 import net.minecraft.text.Text
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
@@ -27,7 +27,7 @@ public class HtmlOwoUIModelFeature public constructor() : MarkdownFeature {
     }
 
     override fun supportsCompiler(compiler: MarkdownCompiler<*>): Boolean {
-        return compiler is HtmlCompiler
+        return compiler is HtmlBookCompiler
     }
 
     override fun registerTokens(registrar: TokenRegistrar) {
@@ -60,7 +60,7 @@ public class HtmlOwoUIModelFeature public constructor() : MarkdownFeature {
         override fun visitStart(compiler: MarkdownCompiler<*>) {
             try {
                 val model = UIModel.load(ByteArrayInputStream(modelString.toByteArray(StandardCharsets.UTF_8)))
-                (compiler as HtmlCompiler).visitComponent(
+                (compiler as HtmlBookCompiler).visitComponent(
                     model.expandTemplate(
                         Component::class.java,
                         "__model-feature-generated__",
@@ -69,7 +69,7 @@ public class HtmlOwoUIModelFeature public constructor() : MarkdownFeature {
                 )
             } catch (e: Exception) {
                 Lavender.LOGGER.warn("Failed to build owo-ui model markdown element", e)
-                (compiler as HtmlCompiler).visitComponent(
+                (compiler as HtmlBookCompiler).visitComponent(
                     Containers.verticalFlow(Sizing.fill(100), Sizing.content())
                         .child(Components.label(Text.literal(e.message)).horizontalSizing(Sizing.fill(100)))
                         .padding(Insets.of(10))

@@ -6,7 +6,7 @@ import net.minecraft.util.Identifier
 import java.nio.file.Path
 
 public fun interface TemplateExpander {
-    public fun expand(properties: Map<String, String>, pagePath: Path, extraResourcesDir: Path ): DomContent
+    public fun expand(properties: Map<String, String>, pageContext: PageContext ): DomContent
 }
 
 public object HtmlTemplateRegistry {
@@ -23,11 +23,11 @@ public object HtmlTemplateRegistry {
 
     @JvmStatic
     public fun register(identifier: Identifier, content: DomContent) {
-        register(identifier) { _, _, _ -> content }
+        register(identifier) { _, _ -> content }
     }
 
     @JvmStatic
     public fun register(identifier: Identifier, content: String) {
-        register(identifier) { _, _, _ -> UnescapedText(content) }
+        register(identifier) { _, _ -> UnescapedText(content) }
     }
 }

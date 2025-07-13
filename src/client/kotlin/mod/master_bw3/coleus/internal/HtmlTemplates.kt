@@ -16,37 +16,11 @@ import net.minecraft.util.Identifier
 import java.util.stream.Stream
 
 internal val lavenderHtmlTemplates = mapOf<String, TemplateExpander>(
-    "page-title" to TemplateExpander { params, _, _ ->
+    "page-title" to TemplateExpander { params, _ ->
         h2(params["title"]!!).withClass("page-title")
     },
 
-//    "item-spotlight" to TemplateExpander { params, pagePath, resourcesDir ->
-//        try {
-//            val item =
-//                ItemStringReader(RegistryWrapper.WrapperLookup.of(Stream.of(Registries.ITEM.readOnlyWrapper)))
-//                    .consume(StringReader(params["item"]!!)).item
-//            val id = item.key.get().value
-//            val component = Components.item(ItemStack(item));
-//            div(
-//                owo(
-//                    component,
-//                    pagePath,
-//                    resourcesDir.resolve("item/${id.namespace}/${id.path}.png"),
-//                    100,
-//                    5
-//                ).withClass("item-spotlight"),
-//                tooltip(
-//                    component.tooltip()!!, pagePath,
-//                    resourcesDir.resolve("item/${id.namespace}/${id.path}_tooltip.png"),
-//                    2
-//                )
-//            )
-//        } catch (_: CommandSyntaxException) {
-//            p(params["item"])
-//        }
-//    },
-
-    "horizontal-rule" to TemplateExpander { params, pagePath, resourcesDir -> hr() }
+    "horizontal-rule" to TemplateExpander { _, _ -> hr() }
 )
 
 

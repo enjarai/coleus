@@ -8,6 +8,7 @@ import j2html.tags.DomContent
 import j2html.tags.specialized.DivTag
 import mod.master_bw3.coleus.Components.owo
 import mod.master_bw3.coleus.Components.tooltip
+import mod.master_bw3.coleus.PageContext
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.Style
 import net.minecraft.util.Identifier
@@ -17,7 +18,7 @@ import java.util.function.UnaryOperator
 import kotlin.collections.ArrayDeque
 import kotlin.io.path.relativeTo
 
-public class HtmlCompiler(private val pagePath: Path, private val rootDir: Path, private val extraResourcesDir: Path) : MarkdownCompiler<DivTag> {
+public class HtmlBookCompiler(private val context: PageContext) : MarkdownCompiler<DivTag> {
 
     private var root: DivTag = div()
     private var nodes: ArrayDeque<ContainerTag<*>> = ArrayDeque(listOf(root))
@@ -33,8 +34,12 @@ public class HtmlCompiler(private val pagePath: Path, private val rootDir: Path,
         if (text.matches(Regex("\n+"))) {
             popToRoot()
         } else if (text.isNotBlank()) {
-            if (nodes.size == 1) pushTag(p())
-            nodesTop.withText(text)
+            if (nodes.size == 1) {
+                pushTag(p())
+                nodesTop.withText(text)
+            } else {
+                nodesTop.withText(" $text")
+            }
         }
     }
 
@@ -84,7 +89,7 @@ public class HtmlCompiler(private val pagePath: Path, private val rootDir: Path,
 
 
         return if (identifier != null && start == '^') {
-            val pagePath = rootDir.resolve("${identifier.path}.html").relativeTo(pagePath.parent)
+            val pagePath = context.bookDir.resolve("${identifier.path}.html").relativeTo(context.pagePath.parent)
             var newLink = pagePath.toString()
             if (section != null) newLink += "#$section"
 
@@ -143,12 +148,12 @@ public class HtmlCompiler(private val pagePath: Path, private val rootDir: Path,
         nodesTop.with(div().withId(pageIndex.toString()))
     }
 
-    public fun visitTemplate(template: (pagePath: Path, extraResourcesDir: Path) -> DomContent) {
-        nodesTop.with(template(pagePath, extraResourcesDir))
+    public fun visitTemplate(template: (context: PageContext) -> DomContent) {
+        nodesTop.with(template(context))
     }
 
     public fun visitComponent(component: Component, className: String, scale: Int = 2) {
-        val outDir = extraResourcesDir.resolve("component")
+        val outDir = context.assetsDir.resolve("component")
         outDir.parent.toFile().mkdirs()
         val uuid = UUID.randomUUID()
 
@@ -156,7 +161,7 @@ public class HtmlCompiler(private val pagePath: Path, private val rootDir: Path,
         nodesTop.with(
             owo(
                 component,
-                pagePath,
+                context.pagePath,
                 outDir.resolve("${uuid}.png"),
                 500,
                 scale
@@ -164,7 +169,7 @@ public class HtmlCompiler(private val pagePath: Path, private val rootDir: Path,
         )
         component.tooltip()?.let { tooltip ->
             nodesTop.with(
-                tooltip(tooltip, pagePath, outDir.resolve("${uuid}-tooltip.png"), 2)
+                tooltip(tooltip, context.pagePath, outDir.resolve("${uuid}-tooltip.png"), 2)
                     .withClass("embedded-component-tooltip")
             )
         }

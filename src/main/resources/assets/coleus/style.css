@@ -4,7 +4,9 @@
 }
 
 html {
+  position: fixed;
   height: 100vh;
+  width: 100vw;
   overflow: hidden
 }
 
@@ -27,13 +29,124 @@ main {
   box-sizing: border-box;
 }
 
-.page {
+#outer-page {
   width: 100%;
   height: 100%;
+  overflow-y: hidden;
+  overflow-x: clip;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+
+#page {
+  flex-grow: 1;
   overflow-y: scroll;
   overflow-x: clip;
   position: relative;
+  padding-bottom: 20em;
 }
+
+#prev-page, #next-page {
+  position: absolute;
+  width: 5em;
+  height: 100%;
+  top: 0;
+  padding: 0;
+  margin: 0;
+}
+
+#prev-page {
+  left: 0;
+}
+
+#next-page {
+  right: 0;
+}
+
+#prev-page label, #next-page label {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+#prev-page:hover label, #next-page:hover label {
+  background-color: var(--base01)
+}
+
+#prev-page input, #next-page input {
+  display: none;
+}
+
+#prev-page svg, #next-page svg {
+  fill: var(--base05);
+  display: block;
+  margin: 30px;
+}
+
+#prev-page:hover svg, #next-page:hover svg {
+  fill: var(--base06);
+}
+
+@media (max-width: 1600px) {
+  #prev-page, #next-page {
+    display: none;
+  }
+
+  #sidebar[data-toggled="true"] {
+    display: none;
+  }
+}
+
+#mobile-page-nav {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  margin-bottom: 1em;
+}
+
+#prev-page-mobile, #next-page-mobile {
+  width: 5em;
+  height: 3em;
+}
+
+#prev-page-mobile label, #next-page-mobile label {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  background-color: var(--base01);
+  border-radius: 8px;
+}
+
+#prev-page-mobile:hover label, #next-page-mobile:hover label {
+  background-color: var(--base02)
+}
+
+#prev-page-mobile input, #next-page-mobile input {
+  display: none;
+}
+
+#prev-page-mobile svg, #next-page-mobile svg {
+  fill: var(--base05);
+  display: block;
+  margin: 10px;
+}
+
+#next-page-mobile {
+  margin-left: auto;
+}
+
+@media (min-width: 1600px) {
+  #mobile-page-nav {
+    display: none;
+  }
+
+  #sidebar[data-toggled="false"] {
+    display: none;
+  }
+}
+
 
 #search-overlay {
   box-sizing: border-box;
@@ -103,13 +216,16 @@ hr {
   color: var(--base03);
 }
 
+mark {
+  background-color: var(--base0A);
+}
+
 ::selection {
   background-color: var(--base02);
 }
 
 .toolbar {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 100;
   border-bottom: solid 1px var(--base03);
   padding: 0.5em;
@@ -137,6 +253,7 @@ hr {
 
 #search-button {
  padding-top: 7px;  
+  margin-right: 10em;
 }
 
 #theme-select {

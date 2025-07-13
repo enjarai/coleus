@@ -68,7 +68,7 @@ public data class Base16Theme(
                 mapType
             )
 
-            return themeMap
+            return themeMap.mapKeys { it.key.lowercase() }
         }
     }
 }

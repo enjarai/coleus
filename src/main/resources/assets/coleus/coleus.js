@@ -51,7 +51,7 @@ window.addEventListener("load", () => {
 
         let searchOverlay = document.createElement("div")
         searchOverlay.id = "search-overlay"
-        document.getElementsByClassName("page")[0].appendChild(searchOverlay)
+        document.getElementById("page").appendChild(searchOverlay)
 
         let overlayBackground = document.createElement("div")
         overlayBackground.id = "overlay-background"
@@ -74,6 +74,9 @@ window.addEventListener("load", () => {
         searchBox.addEventListener("input", () => {
             const searchResults = search(db, {
                 term: searchBox.value,
+                boost: {
+                  title: 2,
+                },
             });
 
             resultContainer.innerHTML = ''
@@ -93,6 +96,10 @@ window.addEventListener("load", () => {
                 let name = document.createElement("a")
                 name.textContent = entry.document.name
                 name.href = relativePath(pageUrl, entry.document.link)
+                name.addEventListener('click', (event) => {
+                    searchOverlay.remove()
+                    overlayBackground.remove()
+                });
                 entryDiv.appendChild(name)
 
                 let description = document.createElement("p")
