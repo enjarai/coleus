@@ -360,7 +360,7 @@ internal class HtmlBookGenerator(private val book: Book) {
 
     private fun loadThemeScript(): ScriptTag {
         return script("""
-            let themeCSS = JSON.parse(sessionStorage.getItem("themeCSS"))
+            let themeCSS = JSON.parse(localStorage.getItem("themeCSS"))
             if (themeCSS !== null) {
                 for (const entry of themeCSS) {
                     document.documentElement.style.setProperty(`--${'$'}{entry[0]}`, `#${'$'}{entry[1]}`);
