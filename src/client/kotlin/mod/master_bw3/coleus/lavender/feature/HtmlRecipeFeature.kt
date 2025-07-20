@@ -14,7 +14,7 @@ import io.wispforest.lavendermd.util.StringNibbler
 import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.core.*
-import mod.master_bw3.coleus.lavender.compiler.HtmlBookCompiler
+import mod.master_bw3.coleus.lavender.compiler.HtmlPageCompiler
 import net.minecraft.client.MinecraftClient
 import net.minecraft.recipe.*
 import net.minecraft.recipe.input.RecipeInput
@@ -47,7 +47,7 @@ public class HtmlRecipeFeature(
     }
 
     override fun supportsCompiler(compiler: MarkdownCompiler<*>): Boolean {
-        return compiler is HtmlBookCompiler
+        return compiler is HtmlPageCompiler
     }
 
     override fun registerTokens(registrar: TokenRegistrar) {
@@ -82,14 +82,14 @@ public class HtmlRecipeFeature(
         override fun visitStart(compiler: MarkdownCompiler<*>) {
             val previewBuilder = previewBuilders[recipe.value().type] as RecipePreviewBuilder<Recipe<T>>?
             if (previewBuilder != null) {
-                (compiler as HtmlBookCompiler).visitComponent(
+                (compiler as HtmlPageCompiler).visitComponent(
                     previewBuilder.buildRecipePreview(
                         this@HtmlRecipeFeature.bookComponentSource,
                         this.recipe
                     ), "recipe-preview",4
                 )
             } else {
-                (compiler as HtmlBookCompiler).visitComponent(
+                (compiler as HtmlPageCompiler).visitComponent(
                     Containers.verticalFlow(Sizing.fill(100), Sizing.content())
                         .child(
                             Components.label(

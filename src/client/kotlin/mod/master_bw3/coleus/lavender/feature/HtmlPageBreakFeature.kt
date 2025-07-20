@@ -6,7 +6,7 @@ import io.wispforest.lavendermd.MarkdownFeature.NodeRegistrar
 import io.wispforest.lavendermd.MarkdownFeature.TokenRegistrar
 import io.wispforest.lavendermd.Parser
 import io.wispforest.lavendermd.compiler.MarkdownCompiler
-import mod.master_bw3.coleus.lavender.compiler.HtmlBookCompiler
+import mod.master_bw3.coleus.lavender.compiler.HtmlPageCompiler
 
 public class HtmlPageBreakFeature : MarkdownFeature {
     override fun name(): String {
@@ -14,7 +14,7 @@ public class HtmlPageBreakFeature : MarkdownFeature {
     }
 
     override fun supportsCompiler(compiler: MarkdownCompiler<*>?): Boolean {
-        return compiler is HtmlBookCompiler
+        return compiler is HtmlPageCompiler
     }
 
     override fun registerTokens(registrar: TokenRegistrar) {
@@ -42,7 +42,7 @@ public class HtmlPageBreakFeature : MarkdownFeature {
 
     private class PageBreakNode : Parser.Node() {
         override fun visitStart(compiler: MarkdownCompiler<*>) {
-            (compiler as HtmlBookCompiler).visitPageBreak()
+            (compiler as HtmlPageCompiler).visitPageBreak()
         }
 
         override fun visitEnd(compiler: MarkdownCompiler<*>?) {}

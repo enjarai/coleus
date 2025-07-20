@@ -96,7 +96,7 @@ public object Components {
     @JvmStatic
     public fun tooltip(tooltip: List<TooltipComponent>, pagePath: Path, imageOutPath: Path, scale: Int = 1): ImgTag {
         val client = MinecraftClient.getInstance()
-        val framebuffer = SimpleFramebuffer(150 * scale, 200 * scale, true, false)
+        val framebuffer = SimpleFramebuffer(200 * scale, 200 * scale, true, false)
         val context = OwoUIDrawContext.of(DrawContext(client, client.bufferBuilders.entityVertexConsumers))
 
         RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC)

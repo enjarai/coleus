@@ -306,6 +306,7 @@ mark {
 }
 
 .embedded-component-tooltip {
+  user-select: none;
   display: none;
   position: absolute;
   left: 0;
@@ -319,6 +320,23 @@ mark {
 
 .embedded-component {
   max-width: 100%;
+}
+
+.hover-text {
+  position: relative;
+}
+
+.hover-text-tooltip {
+  user-select: none;
+  position: absolute;
+  display: none;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+}
+
+.hover-text:hover .hover-text-tooltip:not(:hover) {
+  display: block;
 }
 
 .block-quote {

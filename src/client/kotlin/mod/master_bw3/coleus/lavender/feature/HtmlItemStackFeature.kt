@@ -11,7 +11,7 @@ import io.wispforest.lavendermd.compiler.MarkdownCompiler
 import io.wispforest.lavendermd.util.ListNibbler
 import io.wispforest.lavendermd.util.StringNibbler
 import io.wispforest.owo.ui.component.Components
-import mod.master_bw3.coleus.lavender.compiler.HtmlBookCompiler
+import mod.master_bw3.coleus.lavender.compiler.HtmlPageCompiler
 import net.minecraft.command.argument.ItemStringReader
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.RegistryWrapper.WrapperLookup
@@ -22,7 +22,7 @@ public class HtmlItemStackFeature public constructor(private val registries: Wra
     }
 
     override fun supportsCompiler(compiler: MarkdownCompiler<*>): Boolean {
-        return compiler is HtmlBookCompiler
+        return compiler is HtmlPageCompiler
     }
 
     override fun registerTokens(registrar: TokenRegistrar) {
@@ -58,7 +58,7 @@ public class HtmlItemStackFeature public constructor(private val registries: Wra
 
     private class ItemStackNode(private val stack: ItemStack) : Parser.Node() {
         override fun visitStart(compiler: MarkdownCompiler<*>) {
-            (compiler as HtmlBookCompiler).visitComponent(
+            (compiler as HtmlPageCompiler).visitComponent(
                 Components.item(this.stack).setTooltipFromStack(true),
                 "itemstack",
                 5

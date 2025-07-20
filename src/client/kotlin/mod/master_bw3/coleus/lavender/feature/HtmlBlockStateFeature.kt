@@ -11,7 +11,7 @@ import io.wispforest.lavendermd.util.ListNibbler
 import io.wispforest.lavendermd.util.StringNibbler
 import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.core.Sizing
-import mod.master_bw3.coleus.lavender.compiler.HtmlBookCompiler
+import mod.master_bw3.coleus.lavender.compiler.HtmlPageCompiler
 import net.minecraft.command.argument.BlockArgumentParser
 import net.minecraft.command.argument.BlockArgumentParser.BlockResult
 import net.minecraft.registry.Registries
@@ -22,7 +22,7 @@ public class HtmlBlockStateFeature public constructor() : MarkdownFeature {
     }
 
     override fun supportsCompiler(compiler: MarkdownCompiler<*>): Boolean {
-        return compiler is HtmlBookCompiler
+        return compiler is HtmlPageCompiler
     }
 
     override fun registerTokens(registrar: TokenRegistrar) {
@@ -58,7 +58,7 @@ public class HtmlBlockStateFeature public constructor() : MarkdownFeature {
 
     private class BlockStateNode(private val state: BlockResult) : Parser.Node() {
         override fun visitStart(compiler: MarkdownCompiler<*>) {
-            (compiler as HtmlBookCompiler).visitComponent(
+            (compiler as HtmlPageCompiler).visitComponent(
                 Components.block(
                     state.blockState(),
                     state.nbt()

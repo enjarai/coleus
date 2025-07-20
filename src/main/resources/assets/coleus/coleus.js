@@ -122,8 +122,8 @@ window.addEventListener("load", () => {
                     document.documentElement.style.setProperty(`--${key}`, `#${value}`);
                     themeCSS.push([key, value])
                 }
-                sessionStorage.setItem("theme", themeSelect.value);
-                sessionStorage.setItem("themeCSS", JSON.stringify(themeCSS));
+                localStorage.setItem("theme", themeSelect.value);
+                localStorage.setItem("themeCSS", JSON.stringify(themeCSS));
             })
     })
 
@@ -148,7 +148,7 @@ window.addEventListener("load", () => {
         return "../".repeat(upMoves) + downMoves.join("/");
     }
 
-    const currentTheme = sessionStorage.getItem("theme");
+    const currentTheme = localStorage.getItem("theme");
     if (currentTheme != null) {
         themeSelect.value = currentTheme
     }

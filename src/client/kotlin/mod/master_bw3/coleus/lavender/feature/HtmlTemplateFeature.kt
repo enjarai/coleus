@@ -16,9 +16,8 @@ import j2html.tags.DomContent
 import mod.master_bw3.coleus.Components.owo
 import mod.master_bw3.coleus.HtmlTemplateRegistry
 import mod.master_bw3.coleus.PageContext
-import mod.master_bw3.coleus.lavender.compiler.HtmlBookCompiler
+import mod.master_bw3.coleus.lavender.compiler.HtmlPageCompiler
 import net.minecraft.util.Identifier
-import java.nio.file.Path
 import java.util.UUID
 
 internal typealias TemplateFn = (context: PageContext) -> DomContent
@@ -33,7 +32,7 @@ public class HtmlTemplateFeature(
     }
 
     override fun supportsCompiler(compiler: MarkdownCompiler<*>): Boolean {
-        return compiler is HtmlBookCompiler
+        return compiler is HtmlPageCompiler
     }
 
     override fun registerTokens(registrar: TokenRegistrar) {
@@ -123,7 +122,7 @@ public class HtmlTemplateFeature(
                 ?: throw Exception("no template found for $modelId")
 
 
-            (compiler as HtmlBookCompiler).visitTemplate(template)
+            (compiler as HtmlPageCompiler).visitTemplate(template)
         }
 
         override fun visitEnd(compiler: MarkdownCompiler<*>) {}

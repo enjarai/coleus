@@ -25,7 +25,7 @@ import mod.master_bw3.coleus.PageContext
 import mod.master_bw3.coleus.ColeusClient
 import mod.master_bw3.coleus.SearchEntry
 import mod.master_bw3.coleus.ThemeRegistry
-import mod.master_bw3.coleus.lavender.compiler.HtmlBookCompiler
+import mod.master_bw3.coleus.lavender.compiler.HtmlPageCompiler
 import mod.master_bw3.coleus.lavender.feature.*
 import mod.master_bw3.coleus.mixin.client.LavenderBookScreenAccessor
 import net.fabricmc.loader.api.FabricLoader
@@ -110,9 +110,11 @@ internal class HtmlBookGenerator(private val book: Book) {
             if (resource != null) {
                 val outFile = assetDir.resolve(id.namespace).resolve(id.path)
                 outFile.parent.toFile().mkdirs()
-                val outputStream = outFile.toFile().outputStream()
-                resource.inputStream.transferTo(outputStream)
-                outputStream.close()
+                resource.inputStream.use { inputStream ->
+                    outFile.outputStream().use { outputStream ->
+                        inputStream.transferTo(outputStream)
+                    }
+                }
             }
         }
 
@@ -128,12 +130,16 @@ internal class HtmlBookGenerator(private val book: Book) {
     private fun includeResource(id: Identifier, outPath: String? = null) {
         val client = MinecraftClient.getInstance()
         val outFile = outPath?.let { assetDir.resolve(it) } ?: assetDir.resolve(id.path)
-        outFile.parent.toFile().mkdirs()
 
-        val outputStream = outFile.outputStream()
-        val resource = client.resourceManager.getResource(id).get()
-        resource.inputStream.transferTo(outputStream)
-        outputStream.close()
+        val resource = client.resourceManager.getResource(id).getOrNull()
+        if (resource != null) {
+            outFile.parent.toFile().mkdirs()
+            resource.inputStream.use { inputStream ->
+                outFile.outputStream().use { outputStream ->
+                    inputStream.transferTo(outputStream)
+                }
+            }
+        }
     }
 
     private fun includeThemes() {
@@ -190,13 +196,14 @@ internal class HtmlBookGenerator(private val book: Book) {
 
         val bookTexture = book.texture() ?: Lavender.id("textures/gui/brown_book.png")
         val processor = MarkdownProcessor(
-            { HtmlBookCompiler(pageContext) },
+            { HtmlPageCompiler(pageContext) },
             BasicFormattingFeature(),
             ColorFeature(),
             LinkFeature(),
             ListFeature(),
             BlockQuoteFeature(),
             ImageFeature(),
+            KeybindFeature(),
             HtmlPageBreakFeature(),
             HtmlTemplateFeature(extraParams = mapOf("book-texture" to bookTexture.toString())),
             HtmlRecipeFeature(template, LavenderBookScreenAccessor.getRecipeHandler()[book.id()]),

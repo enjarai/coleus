@@ -6,18 +6,25 @@ import j2html.TagCreator.*
 import j2html.tags.ContainerTag
 import j2html.tags.DomContent
 import j2html.tags.specialized.DivTag
+import mod.master_bw3.coleus.ColeusClient
 import mod.master_bw3.coleus.Components.owo
 import mod.master_bw3.coleus.Components.tooltip
 import mod.master_bw3.coleus.PageContext
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.tooltip.Tooltip
+import net.minecraft.client.gui.tooltip.TooltipComponent
 import net.minecraft.text.ClickEvent
+import net.minecraft.text.HoverEvent
 import net.minecraft.text.Style
 import net.minecraft.util.Identifier
 import java.util.*
 import java.util.function.UnaryOperator
 import kotlin.collections.ArrayDeque
+import kotlin.io.path.outputStream
 import kotlin.io.path.relativeTo
+import kotlin.jvm.optionals.getOrNull
 
-public class HtmlBookCompiler(private val context: PageContext) : MarkdownCompiler<DivTag> {
+public class HtmlPageCompiler(private val context: PageContext) : MarkdownCompiler<DivTag> {
 
     private var root: DivTag = div()
     private var nodes: ArrayDeque<ContainerTag<*>> = ArrayDeque(listOf(root))
@@ -76,16 +83,26 @@ public class HtmlBookCompiler(private val context: PageContext) : MarkdownCompil
                 appendStyle(span().withStyle("color: " + color.hexCode))
             }
         }
-        style.clickEvent?.let { clickEvent ->
 
+        val clickEvent = style.clickEvent
+        val hoverText = style.hoverEvent?.getValue(HoverEvent.Action.SHOW_TEXT)
+        if (clickEvent != null) {
             when (clickEvent.action) {
                 ClickEvent.Action.OPEN_URL -> appendStyle(a().withHref(resolveLinkTarget(clickEvent.value)))
                 else -> {}
             }
+        } else if (hoverText != null) {
+            val uuid = UUID.randomUUID()
+            val tooltip = Tooltip.of(hoverText).getLines(MinecraftClient.getInstance()).map { TooltipComponent.of(it) }
+            appendStyle(
+                span().withClass("hover-text")
+                    .with(
+                        tooltip(tooltip, context.pagePath, context.assetsDir.resolve("hover/${uuid}.png"), 2)
+                            .withClass("hover-text-tooltip")
+                    )
+            )
         }
-//        style.hoverEvent?.getValue(HoverEvent.Action.SHOW_TEXT)?.let { text ->
-//            pushTag(span().with(Components.text(text).withClass("hover-text")))
-//        }
+
         nodes.add(styleTag)
     }
 
@@ -125,7 +142,21 @@ public class HtmlBookCompiler(private val context: PageContext) : MarkdownCompil
     }
 
     override fun visitImage(image: Identifier, description: String, fit: Boolean) {
-        nodesTop.with(img().withSrc("/${image.namespace}/${image.path}").withAlt(description))
+        val resource = MinecraftClient.getInstance().resourceManager.getResource(image).getOrNull()
+        val outPath = context.assetsDir.resolve(image.namespace).resolve(image.path)
+
+        if (resource != null) {
+            outPath.parent.toFile().mkdirs()
+            resource.inputStream.use { inputStream ->
+                outPath.outputStream().use { outputStream ->
+                    inputStream.transferTo(outputStream)
+                }
+            }
+        } else {
+            ColeusClient.logger.atError().log("missing resource: $image")
+        }
+
+        nodesTop.with(img().withSrc(outPath.relativeTo(context.bookDir).toString()).withAlt(description))
     }
 
     override fun visitListItem(ordinal: OptionalInt) {

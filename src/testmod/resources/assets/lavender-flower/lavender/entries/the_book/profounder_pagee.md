@@ -25,6 +25,8 @@ and a betterer [link](^lavender-flower:profound_page#2)
 
 and a betterer [link](^lavender-flower:profound_page#3)
 
+![test](lavender-flower:textures/gui/img/catstare.png)
+
 ---
 
 macro_moment(aaaa,bruh)
