@@ -276,6 +276,7 @@ mark {
   height: 100%;
   border-right: solid 1px var(--base03);
   padding-top: 1em;
+  box-sizing: border-box;
 }
 
 #sidebar ol {

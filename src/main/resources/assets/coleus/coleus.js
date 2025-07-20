@@ -153,5 +153,9 @@ window.addEventListener("load", () => {
         themeSelect.value = currentTheme
     }
 
+    const sidebar = document.getElementById('sidebar');
+    const current = document.getElementById('current-page');
+
+    sidebar.scrollTop = current.offsetTop - sidebar.offsetTop;
 })
 

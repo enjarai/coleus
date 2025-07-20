@@ -4,6 +4,7 @@ import com.sun.net.httpserver.SimpleFileServer;
 import io.wispforest.lavender.book.BookLoader
 import io.wispforest.owo.Owo
 import mod.master_bw3.coleus.internal.HtmlBookGenerator
+import mod.master_bw3.coleus.internal.firstAvailablePort
 import mod.master_bw3.coleus.internal.registerHtmlTemplates
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
@@ -13,12 +14,13 @@ import net.minecraft.util.Identifier
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.net.ServerSocket
+
 
 internal object ColeusClient : ClientModInitializer {
 	internal const val NAME: String = "coleus"
-
-	@Suppress("unused")
 	internal val logger = LoggerFactory.getLogger(NAME)
+	internal val bookServerPort: Int = firstAvailablePort(startPort = 1984)!!
 
 	override fun onInitializeClient() {
 		registerHtmlTemplates()
@@ -26,7 +28,7 @@ internal object ColeusClient : ClientModInitializer {
 		val booksDir = FabricLoader.getInstance().gameDir.resolve("coleus")
 		booksDir.toFile().mkdirs()
 
-		val socket = InetSocketAddress(InetAddress.getLoopbackAddress(), 1984)
+		val socket = InetSocketAddress(InetAddress.getLoopbackAddress(), bookServerPort)
 		val loggingLevel = if (FabricLoader.getInstance().isDevelopmentEnvironment) SimpleFileServer.OutputLevel.INFO else SimpleFileServer.OutputLevel.NONE
 		SimpleFileServer.createFileServer(socket, booksDir, loggingLevel).start()
 

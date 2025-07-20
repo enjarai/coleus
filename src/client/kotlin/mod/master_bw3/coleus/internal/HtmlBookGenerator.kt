@@ -298,7 +298,7 @@ internal class HtmlBookGenerator(private val book: Book) {
             a.with(strong.withText(" "))
         }
         if (pageId == currentPage) {
-            a.with(strong(pageTitle))
+            a.withId("current-page").with(strong(pageTitle))
         } else {
             a.withText(pageTitle)
         }
