@@ -39,12 +39,12 @@ public class HtmlPageCompiler(private val context: PageContext) : MarkdownCompil
     override fun visitText(text: String) {
         if (text.matches(Regex("\n+"))) {
             popToRoot()
-        } else if (text.isNotBlank()) {
+        } else {
             if (nodes.size == 1) {
                 pushTag(p())
                 nodesTop.withText(text)
             } else {
-                nodesTop.withText(" $text")
+                nodesTop.withText(text)
             }
         }
     }
@@ -142,6 +142,8 @@ public class HtmlPageCompiler(private val context: PageContext) : MarkdownCompil
     }
 
     override fun visitImage(image: Identifier, description: String, fit: Boolean) {
+        popToRoot()
+
         val resource = MinecraftClient.getInstance().resourceManager.getResource(image).getOrNull()
         val outPath = context.assetsDir.resolve(image.namespace).resolve(image.path)
 
@@ -230,6 +232,7 @@ public class HtmlPageCompiler(private val context: PageContext) : MarkdownCompil
     }
 
     private fun popToRoot() {
+        listDepth = 0
         nodes.clear()
         nodes.add(root)
         newParagraph = true

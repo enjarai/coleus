@@ -44,8 +44,7 @@ window.addEventListener("load", () => {
         }
 
         if (window.innerWidth <= 800) {
-            document.getElementById("sidebar").dataset.open = 'false';
-            document.getElementById("sidebar").style.display = 'none'
+            document.getElementById("sidebar").dataset.toggled = "true"
         }
 
 
