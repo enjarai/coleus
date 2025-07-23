@@ -12,23 +12,11 @@
 	},
 	"license": "WTFPL",
 	"icon": "assets/coleus/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
-			{
-				"value": "mod.master_bw3.coleus.Coleus",
-				"adapter": "kotlin"
-			}
-		],
 		"client": [
 			{
 				"value": "mod.master_bw3.coleus.ColeusClient",
-				"adapter": "kotlin"
-			}
-		],
-		"fabric-datagen": [
-			{
-				"value": "mod.master_bw3.coleus.ColeusDataGenerator",
 				"adapter": "kotlin"
 			}
 		]
