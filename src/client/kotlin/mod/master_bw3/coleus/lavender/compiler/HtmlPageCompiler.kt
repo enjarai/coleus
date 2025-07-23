@@ -8,6 +8,7 @@ import j2html.tags.DomContent
 import j2html.tags.specialized.DivTag
 import mod.master_bw3.coleus.ColeusClient
 import mod.master_bw3.coleus.Components.owo
+import mod.master_bw3.coleus.Components.owoWithTooltip
 import mod.master_bw3.coleus.Components.tooltip
 import mod.master_bw3.coleus.PageContext
 import net.minecraft.client.MinecraftClient
@@ -142,8 +143,6 @@ public class HtmlPageCompiler(private val context: PageContext) : MarkdownCompil
     }
 
     override fun visitImage(image: Identifier, description: String, fit: Boolean) {
-        popToRoot()
-
         val resource = MinecraftClient.getInstance().resourceManager.getResource(image).getOrNull()
         val outPath = context.assetsDir.resolve(image.namespace).resolve(image.path)
 
@@ -197,24 +196,32 @@ public class HtmlPageCompiler(private val context: PageContext) : MarkdownCompil
         val outDir = context.assetsDir.resolve("component")
         outDir.parent.toFile().mkdirs()
         val uuid = UUID.randomUUID()
+        val tooltip = component.tooltip()
 
-        pushTag(div().withClass("embedded-component-container $className"))
-        nodesTop.with(
-            owo(
-                component,
-                context.pagePath,
-                outDir.resolve("${uuid}.png"),
-                500,
-                scale
-            ).withClass("embedded-component")
-        )
-        component.tooltip()?.let { tooltip ->
+
+        if (tooltip != null) {
             nodesTop.with(
-                tooltip(tooltip, context.pagePath, outDir.resolve("${uuid}-tooltip.png"), 2)
-                    .withClass("embedded-component-tooltip")
+                owoWithTooltip(
+                    component,
+                    tooltip,
+                    className,
+                    context.pagePath,
+                    outDir.resolve("${uuid}.png"),
+                    500,
+                    scale
+                )
+            )
+        } else {
+            nodesTop.with(
+                owo(
+                    component,
+                    context.pagePath,
+                    outDir.resolve("${uuid}.png"),
+                    500,
+                    scale
+                ).withClass("embedded-component-container $className")
             )
         }
-        nodes.removeLast()
     }
 
     override fun compile(): DivTag {
@@ -232,6 +239,7 @@ public class HtmlPageCompiler(private val context: PageContext) : MarkdownCompil
     }
 
     private fun popToRoot() {
+        prevListDepth = 0
         listDepth = 0
         nodes.clear()
         nodes.add(root)

@@ -292,14 +292,19 @@ mark {
   font-weight: 800;
 }
 
-.lavender-book_components-item-spotlight {
+.item-spotlight {
+  display: flex;
   width: 100%;
+  justify-content: center;
+}
+
+.lavender-book_components-item-spotlight {
   image-rendering: pixelated;
 }
 
 .recipe-preview {
-  display: flex;
-  justify-content: center;
+  margin: auto;
+  display: block;
 }
 
 .embedded-component-container {

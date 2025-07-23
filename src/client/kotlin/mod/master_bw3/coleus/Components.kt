@@ -8,6 +8,7 @@ import j2html.TagCreator.*
 import j2html.tags.ContainerTag
 import j2html.tags.DomContent
 import j2html.tags.Tag
+import j2html.tags.specialized.DivTag
 import j2html.tags.specialized.ImgTag
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.SimpleFramebuffer
@@ -18,6 +19,8 @@ import net.minecraft.client.texture.NativeImage
 import net.minecraft.text.Text
 import org.joml.Matrix4f
 import java.nio.file.Path
+import java.util.UUID
+import kotlin.io.path.name
 import kotlin.io.path.relativeTo
 
 public object Components {
@@ -146,6 +149,30 @@ public object Components {
         image.writeTo(imageOutPath)
         image.close()
         return img().withSrc(imageOutPath.relativeTo(pagePath.parent).toString())
+    }
+
+    @JvmStatic
+    public fun owoWithTooltip(
+        component: Component, tooltip: List<TooltipComponent>, className: String,
+        pagePath: Path, imageOutPath: Path, imageSize: Int = 100, scale: Int = 1
+    ): DivTag {
+        imageOutPath.parent.toFile().mkdirs()
+
+        val div = div().withClass("embedded-component-container")
+        div.with(
+            owo(
+                component,
+                pagePath,
+                imageOutPath,
+                500,
+                scale
+            ).withClass("embedded-component $className"),
+
+            tooltip(tooltip, pagePath, imageOutPath.parent.resolve("tooltip").resolve(imageOutPath.name), 2)
+                .withClass("embedded-component-tooltip")
+        )
+
+        return div
     }
 
     @JvmStatic
