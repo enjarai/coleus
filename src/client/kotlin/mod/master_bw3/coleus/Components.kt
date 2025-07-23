@@ -98,9 +98,14 @@ public object Components {
 
     @JvmStatic
     public fun tooltip(tooltip: List<TooltipComponent>, pagePath: Path, imageOutPath: Path, scale: Int = 1): ImgTag {
+        if (tooltip.isEmpty()) return img()
+
         val client = MinecraftClient.getInstance()
-        val framebuffer = SimpleFramebuffer(200 * scale, 200 * scale, true, false)
+        val width = tooltip.maxOf { it.getWidth(client.textRenderer) } + 8
+        val height = tooltip.sumOf { it.height } + 8
+        val framebuffer = SimpleFramebuffer(width * scale, height * scale, true, false)
         val context = OwoUIDrawContext.of(DrawContext(client, client.bufferBuilders.entityVertexConsumers))
+
 
         RenderSystem.clear(GlConst.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC)
         val matrix4f = Matrix4f()
