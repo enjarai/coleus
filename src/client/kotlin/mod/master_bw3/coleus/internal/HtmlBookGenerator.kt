@@ -124,9 +124,6 @@ internal class HtmlBookGenerator(private val book: Book) {
         return bookDir
     }
 
-
-
-
     private fun includeResource(id: Identifier, outPath: String? = null) {
         val client = MinecraftClient.getInstance()
         val outFile = outPath?.let { assetDir.resolve(it) } ?: assetDir.resolve(id.path)
@@ -210,6 +207,7 @@ internal class HtmlBookGenerator(private val book: Book) {
             HtmlOwoUIModelFeature(),
             HtmlItemStackFeature(world.registryManager),
             HtmlBlockStateFeature(),
+            HtmlEntityFeature()
         )
         val outerPage = div().withId("outer-page").with(
             div().withClass("toolbar").with(

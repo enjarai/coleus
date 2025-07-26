@@ -309,6 +309,7 @@ mark {
 
 .embedded-component-container {
   position: relative;
+  margin: 1em 0;
 }
 
 .embedded-component-tooltip {

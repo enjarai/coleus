@@ -38,14 +38,5 @@ internal object ColeusClient : ClientModInitializer {
 			val themes = Base16Theme.collectionFromJsonResource(resource)
 			ThemeRegistry.putAll(themes.mapKeys { Identifier.of(NAME, it.key.lowercase()) })
 		}
-
-
-		ClientPlayConnectionEvents.JOIN.register { handler, sender, client ->
-			client.execute {
-				BookLoader.loadedBooks().forEach {
-					HtmlBookGenerator(it).generate()
-				}
-			}
-		}
 	}
 }

@@ -17,6 +17,7 @@ import net.minecraft.client.gui.tooltip.TooltipComponent
 import net.minecraft.client.render.DiffuseLighting
 import net.minecraft.client.texture.NativeImage
 import net.minecraft.text.Text
+import net.minecraft.util.Identifier
 import org.joml.Matrix4f
 import java.nio.file.Path
 import java.util.UUID
@@ -224,5 +225,4 @@ public object Components {
 
         return out
     }
-
 }

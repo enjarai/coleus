@@ -34,6 +34,6 @@
 		"java": ">=21",
 		"fabric-api": "*",
 		"fabric-language-kotlin": "*",
-		"lavender": ">=0.1.15+1.21"
+		"lavender": ">=0.1.10+1.21"
 	}
 }

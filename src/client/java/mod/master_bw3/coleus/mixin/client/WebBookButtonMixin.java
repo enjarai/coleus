@@ -8,10 +8,9 @@ import io.wispforest.owo.ui.core.Component;
 import io.wispforest.owo.ui.core.Positioning;
 import io.wispforest.owo.ui.parsing.UIModel;
 import mod.master_bw3.coleus.ColeusClient;
-import mod.master_bw3.coleus.internal.Utils;
+import mod.master_bw3.coleus.internal.mixin_impl.WebBookButtonMixinImpl;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -39,7 +38,7 @@ public abstract class WebBookButtonMixin {
         if (!this.isOverlay) {
             this.component(FlowLayout.class, "primary-panel").child(
                     ((Component) ((ButtonComponent) this.template("web-book-button")).onPress(buttonComponent -> {
-                        Util.getOperatingSystem().open("localhost:"+Utils.getWebBookPort()+"/"+book.id().getNamespace()+"/"+book.id().getPath()+"/index.html");
+                        WebBookButtonMixinImpl.INSTANCE.webBookButtonCallback(book);
                     })).id("web-book-button").positioning(Positioning.relative(104, 90))
             );
         }
