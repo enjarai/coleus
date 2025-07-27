@@ -8,6 +8,6 @@ import net.minecraft.util.Util
 public object WebBookButtonMixinImpl {
     public fun webBookButtonCallback(book: Book) {
         HtmlBookGenerator(book).generate();
-        Util.getOperatingSystem().open("localhost:"+bookServerPort+"/"+book.id().namespace +"/"+book.id().path +"/index.html");
+        Util.getOperatingSystem().open("http://localhost:"+bookServerPort+"/"+book.id().namespace +"/"+book.id().path +"/index.html");
     }
 }
