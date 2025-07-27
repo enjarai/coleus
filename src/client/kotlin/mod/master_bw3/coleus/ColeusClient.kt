@@ -3,6 +3,7 @@ package mod.master_bw3.coleus
 import com.sun.net.httpserver.SimpleFileServer;
 import io.wispforest.lavender.book.BookLoader
 import io.wispforest.owo.Owo
+import mod.master_bw3.coleus.internal.ColeusBookGen
 import mod.master_bw3.coleus.internal.HtmlBookGenerator
 import mod.master_bw3.coleus.internal.firstAvailablePort
 import mod.master_bw3.coleus.internal.registerHtmlTemplates
@@ -37,6 +38,10 @@ internal object ColeusClient : ClientModInitializer {
 			val resource = client.resourceManager.getResource(Identifier.of(NAME, "base16theme/base16.json")).get()
 			val themes = Base16Theme.collectionFromJsonResource(resource)
 			ThemeRegistry.putAll(themes.mapKeys { Identifier.of(NAME, it.key.lowercase()) })
+		}
+
+		if (System.getenv("COLEUS_BOOK_GEN")?.toBoolean() == true) {
+			ColeusBookGen.run()
 		}
 	}
 }
