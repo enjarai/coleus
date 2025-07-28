@@ -29,10 +29,10 @@ jobs:
         if: always()
         with:
           name: Book
-          path: run/coleus/lavender-flower/the_book
+          path: ./run/coleus/lavender-flower/the_book
       - name: Deploy
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          destination_dir: run/coleus/lavender-flower/the_book
+          destination_dir: ./run/coleus/lavender-flower/the_book
