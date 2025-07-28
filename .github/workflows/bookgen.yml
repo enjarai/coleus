@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: write
-      pages: write
-      id-token: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
     env:
       COLEUS_BOOK_GEN: 'true'
       COLEUS_BOOK_ID: 'lavender-flower:the_book'
@@ -25,14 +25,14 @@ jobs:
         uses: modmuss50/xvfb-action@v1
         with:
           run: ./gradlew runTestmodClient --stacktrace
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: Book
-          path: ./run/coleus/lavender-flower/the_book
       - name: Deploy
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./run/coleus/lavender-flower/the_book
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Book
+          path: ./run/coleus/lavender-flower/the_book
