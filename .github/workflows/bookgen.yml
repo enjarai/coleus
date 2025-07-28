@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: write
+      pages: write
+      id-token: write
     env:
       COLEUS_BOOK_GEN: 'true'
       COLEUS_BOOK_ID: 'lavender-flower:the_book'
@@ -29,6 +31,7 @@ jobs:
           name: Book
           path: run/coleus/lavender-flower/the_book
       - name: Deploy
+        if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
